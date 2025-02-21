@@ -1,3 +1,4 @@
+build-essential
 python3-dev
 python3-pip
 python3-setuptools
@@ -14,3 +15,4 @@ python3-tk
 libharfbuzz-dev
 libfribidi-dev
 libxcb1-dev
+libart-2.0-dev
