@@ -2,8 +2,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import pandas as pd
 import requests
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from fpdf import FPDF
 from sklearn.ensemble import IsolationForest
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -194,31 +193,41 @@ def create_personalized_training_plan(employee_id, recommendations):
     return training_plan
 
 # PDF rapor oluşturma
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-
 def generate_pdf_report(employee_id, performance_metrics, training_plan):
-    # Unicode desteği için bir yazı tipi yükle
-    pdfmetrics.registerFont(TTFont('DejaVuSans', 'DejaVuSans.ttf'))  # DejaVuSans.ttf dosyasını projeye eklemeniz gerekiyor
+    pdf = FPDF()
+    pdf.add_page()
     
-    pdf_file = f"employee_{employee_id}_report.pdf"
-    c = canvas.Canvas(pdf_file, pagesize=letter)
-    c.setFont("DejaVuSans", 12)  # Yazı tipini ve boyutunu ayarla
-    c.drawString(100, 750, f"Employee Performance Report - ID: {employee_id}")
-    c.drawString(100, 730, f"Task Completion Rate: %{performance_metrics['task_completion_rate']*100:.1f}")
-    c.drawString(100, 710, f"Email Efficiency: %{performance_metrics['email_efficiency']*100:.1f}")
-    c.drawString(100, 690, "Training Recommendations:")
-    y = 670
+    # Font ayarları - DejaVu Sans kullan (Unicode desteği için)
+    pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+    pdf.set_font('DejaVu', '', 12)
+    
+    # Başlık
+    pdf.set_font('DejaVu', '', 16)
+    pdf.cell(0, 10, f"Employee Performance Report - ID: {employee_id}", ln=True, align='C')
+    
+    # Performans Metrikleri
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Performance Metrics", ln=True)
+    
+    pdf.set_font('DejaVu', '', 12)
+    pdf.cell(0, 10, f"Task Completion Rate: %{performance_metrics['task_completion_rate']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Email Efficiency: %{performance_metrics['email_efficiency']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Meeting Efficiency: %{performance_metrics['meeting_efficiency']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Collaboration Score: %{performance_metrics['collaboration_score']*100:.1f}", ln=True)
+    
+    # Eğitim Önerileri
+    pdf.ln(10)
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Training Recommendations", ln=True)
+    
+    pdf.set_font('DejaVu', '', 12)
     for rec in training_plan["training_recommendations"]:
-        c.drawString(120, y, rec["recommendation"])
-        y -= 20
+        pdf.cell(0, 10, f"• {rec['recommendation']}", ln=True)
         for course in rec["courses"]:
-            title = course["title"][:50] + "..." if len(course["title"]) > 50 else course["title"]  # Başlığı kısalt
-            c.drawString(140, y, f"- {title}")
-            c.drawString(140, y - 10, f"  ({course['url']})")  # URL'yi alt satıra yaz
-            y -= 30  # Her kurs için daha fazla boşluk bırak
-    c.save()
-    return pdf_file
+            pdf.cell(0, 10, f"- {course['title']}", ln=True)
+            pdf.cell(0, 10, f"  ({course['url']})", ln=True)
+    
+    pdf.output(f"employee_{employee_id}_report.pdf")
 
 # Supabase'den veri okuma ve analiz etme
 def analyze_employee_data(employee_id):
@@ -678,81 +687,78 @@ def analyze_all_employees():
 # Departman raporu oluşturma
 def generate_department_report_pdf(department_name, department_stats, employee_analyses, output_file):
     """Departman bazlı PDF raporu oluşturur"""
-    c = canvas.Canvas(output_file, pagesize=letter)
-    width, height = letter
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Font ayarları - DejaVu Sans kullan (Unicode desteği için)
+    pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+    pdf.set_font('DejaVu', '', 12)
     
     # Başlık
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, height - 50, f"{department_name} Department Performance Report")
+    pdf.set_font('DejaVu', '', 16)
+    pdf.cell(0, 10, f"{department_name} Department Performance Report", ln=True, align='C')
     
     # Departman özeti
-    c.setFont("Helvetica", 12)
-    y = height - 100
-    c.drawString(50, y, f"Total Employees: {department_stats['total_employees']}")
-    y -= 20
-    c.drawString(50, y, f"Average Task Completion: %{department_stats['avg_task_completion']*100:.1f}")
-    y -= 20
-    c.drawString(50, y, f"Average Email Response Efficiency: %{department_stats['avg_email_response']*100:.1f}")
+    pdf.set_font('DejaVu', '', 12)
+    pdf.cell(0, 10, f"Total Employees: {department_stats['total_employees']}", ln=True)
+    pdf.cell(0, 10, f"Average Task Completion: %{department_stats['avg_task_completion']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Average Email Response Efficiency: %{department_stats['avg_email_response']*100:.1f}", ln=True)
     
     # Çalışan detayları
-    y -= 40
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Employee Details")
+    pdf.ln(10)
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Employee Details", ln=True)
     
     for emp_id, analysis in employee_analyses.items():
-        if y < 100:  # Sayfa kontrolü
-            c.showPage()
-            y = height - 50
+        # Yeni sayfa kontrolü
+        if pdf.get_y() > 250:
+            pdf.add_page()
         
-        y -= 30
-        c.setFont("Helvetica-Bold", 12)
-        c.drawString(50, y, f"Employee ID: {emp_id}")
+        pdf.set_font('DejaVu', '', 12)
+        pdf.cell(0, 10, f"Employee ID: {emp_id}", ln=True)
         
-        y -= 20
-        c.setFont("Helvetica", 10)
+        pdf.set_font('DejaVu', '', 10)
         metrics = analysis["metrics"]
-        c.drawString(70, y, f"Task Completion: %{metrics['task_completion_rate']*100:.1f}")
-        y -= 15
-        c.drawString(70, y, f"Email Efficiency: %{metrics['email_efficiency']*100:.1f}")
-        y -= 15
-        c.drawString(70, y, f"Meeting Efficiency: %{metrics['meeting_efficiency']*100:.1f}")
-        y -= 15
-        c.drawString(70, y, f"Collaboration Score: %{metrics['collaboration_score']*100:.1f}")
+        pdf.cell(0, 8, f"Task Completion: %{metrics['task_completion_rate']*100:.1f}", ln=True)
+        pdf.cell(0, 8, f"Email Efficiency: %{metrics['email_efficiency']*100:.1f}", ln=True)
+        pdf.cell(0, 8, f"Meeting Efficiency: %{metrics['meeting_efficiency']*100:.1f}", ln=True)
+        pdf.cell(0, 8, f"Collaboration Score: %{metrics['collaboration_score']*100:.1f}", ln=True)
         
         # Öneriler
         if analysis["recommendations"]:
-            y -= 20
-            c.setFont("Helvetica-Oblique", 10)
-            c.drawString(70, y, "Recommended Training:")
+            pdf.ln(5)
+            pdf.set_font('DejaVu', '', 10)
+            pdf.cell(0, 8, "Recommended Training:", ln=True)
             for rec in analysis["recommendations"][:2]:  # İlk 2 öneriyi göster
-                y -= 15
-                c.drawString(90, y, f"• {rec['suggestion']}")
+                pdf.cell(0, 8, f"• {rec['suggestion']}", ln=True)
+        pdf.ln(10)
     
-    c.save()
+    pdf.output(output_file)
 
 # Takım raporu oluşturma
 def generate_team_report_pdf(team_name, team_stats, employee_analyses, output_file):
     """Takım bazlı PDF raporu oluşturur"""
-    c = canvas.Canvas(output_file, pagesize=letter)
-    width, height = letter
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Font ayarları - DejaVu Sans kullan (Unicode desteği için)
+    pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+    pdf.set_font('DejaVu', '', 12)
     
     # Başlık
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, height - 50, f"{team_name} Team Performance Report")
+    pdf.set_font('DejaVu', '', 16)
+    pdf.cell(0, 10, f"{team_name} Team Performance Report", ln=True, align='C')
     
     # Takım özeti
-    c.setFont("Helvetica", 12)
-    y = height - 100
-    c.drawString(50, y, f"Total Employees: {team_stats['total_employees']}")
-    y -= 20
-    c.drawString(50, y, f"Average Task Completion: %{team_stats['avg_task_completion']*100:.1f}")
-    y -= 20
-    c.drawString(50, y, f"Average Email Response Efficiency: %{team_stats['avg_email_response']*100:.1f}")
+    pdf.set_font('DejaVu', '', 12)
+    pdf.cell(0, 10, f"Total Employees: {team_stats['total_employees']}", ln=True)
+    pdf.cell(0, 10, f"Average Task Completion: %{team_stats['avg_task_completion']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Average Email Response Efficiency: %{team_stats['avg_email_response']*100:.1f}", ln=True)
     
     # Performans Dağılımı
-    y -= 40
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Team Performance Distribution")
+    pdf.ln(10)
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Team Performance Distribution", ln=True)
     
     metrics = {
         'task_completion': [],
@@ -768,26 +774,25 @@ def generate_team_report_pdf(team_name, team_stats, employee_analyses, output_fi
         metrics['meeting_efficiency'].append(m['meeting_efficiency'])
         metrics['collaboration'].append(m['collaboration_score'])
     
-    y -= 30
-    c.setFont("Helvetica", 10)
+    pdf.set_font('DejaVu', '', 10)
     for metric, values in metrics.items():
         if values:
             avg = sum(values) / len(values)
             max_val = max(values)
             min_val = min(values)
-            c.drawString(70, y, f"{metric.replace('_', ' ').title()}:")
-            y -= 15
-            c.drawString(90, y, f"Average: %{avg*100:.1f}")
-            y -= 15
-            c.drawString(90, y, f"Highest: %{max_val*100:.1f}")
-            y -= 15
-            c.drawString(90, y, f"Lowest: %{min_val*100:.1f}")
-            y -= 20
+            pdf.cell(0, 8, f"{metric.replace('_', ' ').title()}:")
+            pdf.ln(5)
+            pdf.cell(0, 8, f"Average: %{avg*100:.1f}")
+            pdf.ln(5)
+            pdf.cell(0, 8, f"Highest: %{max_val*100:.1f}")
+            pdf.ln(5)
+            pdf.cell(0, 8, f"Lowest: %{min_val*100:.1f}")
+            pdf.ln(10)
     
     # Takım Önerileri
-    y -= 20
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Team Development Recommendations")
+    pdf.ln(10)
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Team Development Recommendations", ln=True)
     
     # En sık karşılaşılan önerileri topla
     all_recommendations = []
@@ -798,13 +803,12 @@ def generate_team_report_pdf(team_name, team_stats, employee_analyses, output_fi
         from collections import Counter
         top_recommendations = Counter(all_recommendations).most_common(3)
         
-        y -= 30
-        c.setFont("Helvetica", 10)
+        pdf.set_font('DejaVu', '', 10)
         for area, count in top_recommendations:
-            c.drawString(70, y, f"• {area}: recommended for {count} employees")
-            y -= 20
+            pdf.cell(0, 8, f"• {area}: recommended for {count} employees")
+            pdf.ln(5)
     
-    c.save()
+    pdf.output(output_file)
 
 # Tüm raporları oluşturma
 def generate_all_reports():
@@ -905,59 +909,54 @@ def generate_all_reports():
 
 def generate_individual_report_pdf(employee_id, metrics, trends, recommendations, output_file):
     """Çalışan bazlı detaylı PDF raporu oluşturur"""
-    c = canvas.Canvas(output_file, pagesize=letter)
-    width, height = letter
+    pdf = FPDF()
+    pdf.add_page()
+    
+    # Font ayarları - DejaVu Sans kullan (Unicode desteği için)
+    pdf.add_font('DejaVu', '', '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf', uni=True)
+    pdf.set_font('DejaVu', '', 12)
     
     # Başlık
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(50, height - 50, f"Employee Performance Report (ID: {employee_id})")
+    pdf.set_font('DejaVu', '', 16)
+    pdf.cell(0, 10, f"Employee Performance Report (ID: {employee_id})", ln=True, align='C')
     
     # Performans Metrikleri
-    y = height - 100
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Performance Metrics")
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Performance Metrics", ln=True)
     
-    c.setFont("Helvetica", 12)
-    y -= 30
-    c.drawString(70, y, f"Task Completion Rate: %{metrics['task_completion_rate']*100:.1f}")
-    y -= 20
-    c.drawString(70, y, f"Email Efficiency: %{metrics['email_efficiency']*100:.1f}")
-    y -= 20
-    c.drawString(70, y, f"Meeting Efficiency: %{metrics['meeting_efficiency']*100:.1f}")
-    y -= 20
-    c.drawString(70, y, f"Collaboration Score: %{metrics['collaboration_score']*100:.1f}")
+    pdf.set_font('DejaVu', '', 12)
+    pdf.cell(0, 10, f"Task Completion Rate: %{metrics['task_completion_rate']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Email Efficiency: %{metrics['email_efficiency']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Meeting Efficiency: %{metrics['meeting_efficiency']*100:.1f}", ln=True)
+    pdf.cell(0, 10, f"Collaboration Score: %{metrics['collaboration_score']*100:.1f}", ln=True)
     
     # Trend Analizi
-    y -= 40
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Trend Analysis")
+    pdf.ln(10)
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Trend Analysis", ln=True)
     
-    c.setFont("Helvetica", 12)
-    y -= 30
+    pdf.set_font('DejaVu', '', 12)
     for metric, trend in trends.items():
-        c.drawString(70, y, f"{metric}: {trend['direction']} (%{trend['change_rate']*100:.1f})")
-        y -= 20
-        c.drawString(90, y, f"Forecast: {trend['forecast']}")
-        y -= 30
+        pdf.cell(0, 10, f"{metric}: {trend['direction']} (%{trend['change_rate']*100:.1f})", ln=True)
+        pdf.cell(0, 10, f"Forecast: {trend['forecast']}", ln=True)
+        pdf.ln(5)
     
     # Gelişim Önerileri
-    y -= 20
-    c.setFont("Helvetica-Bold", 14)
-    c.drawString(50, y, "Development Recommendations")
+    pdf.ln(10)
+    pdf.set_font('DejaVu', '', 14)
+    pdf.cell(0, 10, "Development Recommendations", ln=True)
     
-    c.setFont("Helvetica", 12)
-    y -= 30
+    pdf.set_font('DejaVu', '', 12)
     for rec in recommendations:
-        c.drawString(70, y, f"• Area: {rec['area']}")
-        y -= 20
-        c.drawString(90, y, f"  Suggestion: {rec['suggestion']}")
-        y -= 20
+        pdf.cell(0, 10, f"• Area: {rec['area']}", ln=True)
+        pdf.cell(0, 10, f"  Suggestion: {rec['suggestion']}", ln=True)
         if 'expected_impact' in rec:
-            c.drawString(90, y, f"  Expected Impact: {rec['expected_impact']}")
-            y -= 30
+            pdf.cell(0, 10, f"  Expected Impact: {rec['expected_impact']}", ln=True)
+        pdf.ln(5)
     
-    c.save()
+    pdf.output(output_file)
 
+# Çalışan Detaylı Analizi
 def analyze_individual_employee(employee_id):
     """
     Belirli bir çalışanın detaylı analizini yapar
