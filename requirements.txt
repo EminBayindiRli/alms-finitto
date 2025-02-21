@@ -13,3 +13,6 @@ requests==2.26.0
 aiofiles==0.7.0
 matplotlib==3.4.3
 seaborn==0.11.2
+firebase-admin>=6.2.0
+nltk>=3.8.1
+prophet>=1.1.4
