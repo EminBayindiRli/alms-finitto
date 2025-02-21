@@ -13,7 +13,8 @@ services:
       - key: SUPABASE_KEY
         sync: false  # This will be set manually in Render dashboard
       - key: CORS_ORIGINS
-        value: "https://alms-last.netlify.app"
-    healthCheckPath: /docs
+        value: "https://alms-last.netlify.app,http://localhost:5173,http://localhost:3000"
+    healthCheckPath: /
+    healthCheckTimeout: 100
     autoDeploy: true
     plan: starter # Free tier

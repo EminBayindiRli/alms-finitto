@@ -16,10 +16,19 @@ from analiz_eğitim import (
     analyze_individual_employee
 )
 
-app = FastAPI(title="ALMS API", description="Learning Management System Analysis API")
+app = FastAPI(
+    title="ALMS API",
+    description="Learning Management System Analysis API",
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json"
+)
 
 # CORS ayarları
-origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173,https://alms-last.netlify.app").split(",")
+origins = os.environ.get(
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://localhost:3000,https://alms-last.netlify.app"
+).split(",")
 
 app.add_middleware(
     CORSMiddleware,
