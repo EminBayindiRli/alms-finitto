@@ -5,7 +5,7 @@
   environment = { NODE_VERSION = "18" }
 
 [build.environment]
-  PYTHON_VERSION = "3.9.18"
+  PYTHON_VERSION = "3.8"
 
 [[redirects]]
   from = "/api/*"
