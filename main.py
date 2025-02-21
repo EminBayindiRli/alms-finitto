@@ -19,9 +19,11 @@ from analiz_eğitim import (
 app = FastAPI(title="ALMS API", description="Learning Management System Analysis API")
 
 # CORS ayarları
+origins = os.environ.get("CORS_ORIGINS", "http://localhost:5173,https://alms-last.netlify.app").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Güvenlik için production'da spesifik domain'leri belirtin
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,7 +46,7 @@ class EmployeeAnalysisResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"message": "ALMS API is running"}
+    return {"status": "ok", "message": "ALMS API is running"}
 
 @app.get("/analyze/all", response_model=AnalysisResponse)
 async def analyze_all():
