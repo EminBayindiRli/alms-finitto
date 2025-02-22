@@ -63,26 +63,36 @@ class EmployeeAnalysisResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return JSONResponse(
-        content={
-            "status": "ok",
-            "message": "ALMS API is running",
-            "version": "1.0.0",
-            "documentation": "/docs",
-            "endpoints": [
-                "/analyze/all",
-                "/analyze/employee/{employee_id}",
-                "/reports/employee/{employee_id}"
-            ]
-        }
-    )
+    try:
+        return JSONResponse(
+            content={
+                "status": "ok",
+                "message": "ALMS API is running",
+                "version": "1.0.0",
+                "documentation": "/docs",
+                "endpoints": [
+                    "/analyze/all",
+                    "/analyze/employee/{employee_id}",
+                    "/reports/employee/{employee_id}"
+                ]
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/analyze/all", response_model=AnalysisResponse)
 async def analyze_all():
     try:
         results = analyze_all_employees()
+        if not results:
+            return {
+                "total_employees": 0,
+                "department_statistics": {},
+                "team_statistics": {}
+            }
         return results
     except Exception as e:
+        print(f"Error in analyze_all: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate/reports")
