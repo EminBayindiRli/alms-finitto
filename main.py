@@ -19,8 +19,11 @@ from analiz_eğitim import (
 )
 
 # Supabase yapılandırması
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://oyzqnkdivklvbolyoziz.supabase.co")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95enFua2RpdmtsdmJvbHlveml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAwODkxMjAsImV4cCI6MjA1NTY2NTEyMH0.R4AayXQ7ubfOqBW2ZW23w_J_Kt9qz2saLSNgreu-Kis")
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
 
 # Supabase istemcisini oluştur
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -34,9 +37,16 @@ app = FastAPI(
 )
 
 # CORS ayarları
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://alms-dashboard.netlify.app")
+ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:5173",  # Local development
+    "http://localhost:3000",  # Alternative local port
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://inquisitive-bublanina-dc4455.netlify.app", "http://localhost:5173"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -83,16 +93,19 @@ async def root():
 @app.get("/analyze/all", response_model=AnalysisResponse)
 async def analyze_all():
     try:
+        print("Starting analyze_all endpoint...")
         results = analyze_all_employees()
         if not results:
+            print("No results from analyze_all_employees")
             return {
                 "total_employees": 0,
                 "department_statistics": {},
                 "team_statistics": {}
             }
+        print(f"Successfully got results: {results}")
         return results
     except Exception as e:
-        print(f"Error in analyze_all: {str(e)}")
+        print(f"Error in analyze_all endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate/reports")

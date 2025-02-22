@@ -4,14 +4,16 @@ services:
     env: python
     region: frankfurt  # Europe region
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --log-level debug
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
       - key: SUPABASE_URL
-        value: "https://oyzqnkdivklvbolyoziz.supabase.co"
+        sync: false  # Render dashboard'dan ayarlanacak
       - key: SUPABASE_KEY
-        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95enFua2RpdmtsdmJvbHlveml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAwODkxMjAsImV4cCI6MjA1NTY2NTEyMH0.R4AayXQ7ubfOqBW2ZW23w_J_Kt9qz2saLSNgreu-Kis"
+        sync: false  # Render dashboard'dan ayarlanacak
+      - key: FRONTEND_URL
+        value: "https://alms-dashboard.netlify.app"
       - key: CORS_ORIGINS
         value: "*"
     healthCheckPath: /
