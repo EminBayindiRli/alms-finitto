@@ -10,7 +10,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import nltk
 from nltk.sentiment import SentimentIntensityAnalyzer
-from prophet import Prophet
 import numpy as np
 from supabase import create_client, Client
 import os
