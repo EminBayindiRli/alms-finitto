@@ -618,7 +618,11 @@ def analyze_all_employees():
         employees = response.data
 
         if not employees:
-            return {"error": "No employees found"}
+            return {
+                "total_employees": 0,
+                "department_statistics": {},
+                "team_statistics": {}
+            }
 
         department_stats = {}
         team_stats = {}
@@ -636,43 +640,43 @@ def analyze_all_employees():
             metrics = calculate_performance_metrics(employee_data[-1])
 
             # Departman istatistiklerini güncelle
-            dept = employee['department']
+            dept = employee.get('department', 'Unknown')
             if dept not in department_stats:
                 department_stats[dept] = {
-                    'total_employees': 0,
-                    'avg_task_completion': 0,
-                    'avg_email_response': 0
+                    'performance': 0,
+                    'completion_rate': 0,
+                    'total_employees': 0
                 }
             
             department_stats[dept]['total_employees'] += 1
-            department_stats[dept]['avg_task_completion'] += metrics['task_completion_rate']
-            department_stats[dept]['avg_email_response'] += metrics['email_efficiency']
+            department_stats[dept]['performance'] += metrics['task_completion_rate'] * 100
+            department_stats[dept]['completion_rate'] += metrics['time_efficiency'] * 100
 
             # Takım istatistiklerini güncelle
-            team = employee['team']
+            team = employee.get('team', 'Unknown')
             if team not in team_stats:
                 team_stats[team] = {
-                    'total_employees': 0,
-                    'avg_task_completion': 0,
-                    'avg_email_response': 0
+                    'performance': 0,
+                    'completion_rate': 0,
+                    'total_employees': 0
                 }
             
             team_stats[team]['total_employees'] += 1
-            team_stats[team]['avg_task_completion'] += metrics['task_completion_rate']
-            team_stats[team]['avg_email_response'] += metrics['email_efficiency']
+            team_stats[team]['performance'] += metrics['task_completion_rate'] * 100
+            team_stats[team]['completion_rate'] += metrics['time_efficiency'] * 100
 
         # Ortalamaları hesapla
         for dept in department_stats:
             total = department_stats[dept]['total_employees']
             if total > 0:
-                department_stats[dept]['avg_task_completion'] /= total
-                department_stats[dept]['avg_email_response'] /= total
+                department_stats[dept]['performance'] = round(department_stats[dept]['performance'] / total, 1)
+                department_stats[dept]['completion_rate'] = round(department_stats[dept]['completion_rate'] / total, 1)
 
         for team in team_stats:
             total = team_stats[team]['total_employees']
             if total > 0:
-                team_stats[team]['avg_task_completion'] /= total
-                team_stats[team]['avg_email_response'] /= total
+                team_stats[team]['performance'] = round(team_stats[team]['performance'] / total, 1)
+                team_stats[team]['completion_rate'] = round(team_stats[team]['completion_rate'] / total, 1)
 
         return {
             "total_employees": total_employees,
@@ -682,7 +686,7 @@ def analyze_all_employees():
 
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
-        return {"error": str(e)}
+        raise Exception(f"Error analyzing employees: {str(e)}")
 
 # Departman raporu oluşturma
 def generate_department_report_pdf(department_name, department_stats, employee_analyses, output_file):
