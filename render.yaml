@@ -9,11 +9,11 @@ services:
       - key: PYTHON_VERSION
         value: 3.11.11
       - key: SUPABASE_URL
-        sync: false  # This will be set manually in Render dashboard
+        value: "https://oyzqnkdivklvbolyoziz.supabase.co"
       - key: SUPABASE_KEY
-        sync: false  # This will be set manually in Render dashboard
+        value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95enFua2RpdmtsdmJvbHlveml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAwODkxMjAsImV4cCI6MjA1NTY2NTEyMH0.R4AayXQ7ubfOqBW2ZW23w_J_Kt9qz2saLSNgreu-Kis"
       - key: CORS_ORIGINS
-        value: "https://alms-last.netlify.app,http://localhost:5173,http://localhost:3000"
+        value: "*"
     healthCheckPath: /
     healthCheckTimeout: 100
     autoDeploy: true

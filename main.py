@@ -7,6 +7,7 @@ from typing import List, Dict, Any, Optional
 import os
 from datetime import datetime
 import json
+from supabase import create_client, Client
 
 from analiz_eğitim import (
     analyze_all_employees,
@@ -16,6 +17,13 @@ from analiz_eğitim import (
     generate_recommendations,
     analyze_individual_employee
 )
+
+# Supabase yapılandırması
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://oyzqnkdivklvbolyoziz.supabase.co")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95enFua2RpdmtsdmJvbHlveml6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDAwODkxMjAsImV4cCI6MjA1NTY2NTEyMH0.R4AayXQ7ubfOqBW2ZW23w_J_Kt9qz2saLSNgreu-Kis")
+
+# Supabase istemcisini oluştur
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI(
     title="ALMS API",
