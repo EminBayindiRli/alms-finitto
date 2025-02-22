@@ -1,8 +1,11 @@
 [build]
   base = "frontend"
-  command = "npm run build"
-  publish = "dist"
-  environment = { NODE_VERSION = "18" }
+  command = "npm install && npm run build"
+  publish = "frontend/dist"
+
+[build.environment]
+  NODE_VERSION = "18"
+  VITE_API_URL = "https://alms-backend-api.onrender.com"
 
 # API yönlendirmesi
 [[redirects]]
@@ -17,6 +20,3 @@
   to = "/index.html"
   status = 200
   force = true
-
-[build.environment]
-  VITE_API_URL = "https://alms-backend-api.onrender.com"
