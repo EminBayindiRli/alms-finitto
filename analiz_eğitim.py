@@ -25,32 +25,63 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Performans metriklerini hesaplama
 def calculate_performance_metrics(employee_data):
     """Çalışan verilerinden performans metriklerini hesaplar"""
-    
-    # Temel metrikler
-    task_completion_rate = employee_data["tasks_completed"] / employee_data["tasks_assigned"]
-    email_efficiency = 1 / (1 + employee_data["email_response_time"] / 60)  # Normalize edilmiş yanıt süresi
-    meeting_efficiency = 1 - (employee_data["meeting_duration"] / (8 * 60))  # 8 saatlik güne oranı
-    
-    # İletişim ve işbirliği metrikleri
-    communication_score = (employee_data["email_sent_count"] + employee_data["chat_messages"]) / 100
-    collaboration_score = (employee_data["shared_files"] + employee_data["comments_made"]) / 20
-    
-    # Zaman yönetimi
-    productivity_time = employee_data["focus_hours"] + (employee_data["meeting_duration"] / 60)
-    time_efficiency = productivity_time / 8  # 8 saatlik güne oranı
-    
-    # Dosya aktivitesi
-    file_activity = employee_data["files_edited"] / max(1, employee_data["files_accessed"])
-    
-    return {
-        "task_completion_rate": round(task_completion_rate, 2),
-        "email_efficiency": round(email_efficiency, 2),
-        "meeting_efficiency": round(meeting_efficiency, 2),
-        "communication_score": round(communication_score, 2),
-        "collaboration_score": round(collaboration_score, 2),
-        "time_efficiency": round(time_efficiency, 2),
-        "file_activity": round(file_activity, 2)
-    }
+    try:
+        # Varsayılan değerler
+        default_metrics = {
+            "task_completion_rate": 0,
+            "email_efficiency": 0,
+            "meeting_efficiency": 0,
+            "communication_score": 0,
+            "collaboration_score": 0,
+            "time_efficiency": 0,
+            "file_activity": 0
+        }
+        
+        if not employee_data:
+            return default_metrics
+
+        # Temel metrikler
+        tasks_assigned = employee_data.get("tasks_assigned", 0)
+        tasks_completed = employee_data.get("tasks_completed", 0)
+        task_completion_rate = tasks_completed / max(tasks_assigned, 1)
+        
+        email_response_time = employee_data.get("email_response_time", 0)
+        email_efficiency = 1 / (1 + email_response_time / 60)  # Normalize edilmiş yanıt süresi
+        
+        meeting_duration = employee_data.get("meeting_duration", 0)
+        meeting_efficiency = 1 - (meeting_duration / (8 * 60))  # 8 saatlik güne oranı
+        
+        # İletişim ve işbirliği metrikleri
+        email_sent = employee_data.get("email_sent_count", 0)
+        chat_messages = employee_data.get("chat_messages", 0)
+        communication_score = (email_sent + chat_messages) / 100
+        
+        shared_files = employee_data.get("shared_files", 0)
+        comments = employee_data.get("comments_made", 0)
+        collaboration_score = (shared_files + comments) / 20
+        
+        # Zaman yönetimi
+        focus_hours = employee_data.get("focus_hours", 0)
+        productivity_time = focus_hours + (meeting_duration / 60)
+        time_efficiency = productivity_time / 8  # 8 saatlik güne oranı
+        
+        # Dosya aktivitesi
+        files_edited = employee_data.get("files_edited", 0)
+        files_accessed = employee_data.get("files_accessed", 1)
+        file_activity = files_edited / max(files_accessed, 1)
+        
+        return {
+            "task_completion_rate": round(task_completion_rate, 2),
+            "email_efficiency": round(email_efficiency, 2),
+            "meeting_efficiency": round(meeting_efficiency, 2),
+            "communication_score": round(communication_score, 2),
+            "collaboration_score": round(collaboration_score, 2),
+            "time_efficiency": round(time_efficiency, 2),
+            "file_activity": round(file_activity, 2)
+        }
+    except Exception as e:
+        print(f"Error calculating metrics: {str(e)}")
+        return default_metrics
 
 # Trend analizi yapma
 def analyze_trends(employee_data_list):
@@ -613,11 +644,16 @@ def analyze_employee_segments(employee_data_list):
 def analyze_all_employees():
     """Tüm çalışanların verilerini analiz eder"""
     try:
+        print("Starting analyze_all_employees...")
+        
         # Tüm çalışanları al
         response = supabase.table('employees').select('*').execute()
-        employees = response.data
-
+        employees = response.data if response else []
+        
+        print(f"Found {len(employees)} employees")
+        
         if not employees:
+            print("No employees found")
             return {
                 "total_employees": 0,
                 "department_statistics": {},
@@ -629,41 +665,49 @@ def analyze_all_employees():
         total_employees = len(employees)
 
         for employee in employees:
-            # Çalışan verilerini al
-            emp_data_response = supabase.table('employee_data').select('*').eq('employee_id', employee['id']).execute()
-            employee_data = emp_data_response.data
-
-            if not employee_data:
-                continue
+            try:
+                print(f"Processing employee {employee.get('id', 'unknown')}")
                 
-            # Performans metriklerini hesapla
-            metrics = calculate_performance_metrics(employee_data[-1])
+                # Çalışan verilerini al
+                emp_data_response = supabase.table('employee_data').select('*').eq('employee_id', employee['id']).execute()
+                employee_data = emp_data_response.data if emp_data_response else []
 
-            # Departman istatistiklerini güncelle
-            dept = employee.get('department', 'Unknown')
-            if dept not in department_stats:
-                department_stats[dept] = {
-                    'performance': 0,
-                    'completion_rate': 0,
-                    'total_employees': 0
-                }
-            
-            department_stats[dept]['total_employees'] += 1
-            department_stats[dept]['performance'] += metrics['task_completion_rate'] * 100
-            department_stats[dept]['completion_rate'] += metrics['time_efficiency'] * 100
+                if not employee_data:
+                    print(f"No data found for employee {employee.get('id', 'unknown')}")
+                    continue
 
-            # Takım istatistiklerini güncelle
-            team = employee.get('team', 'Unknown')
-            if team not in team_stats:
-                team_stats[team] = {
-                    'performance': 0,
-                    'completion_rate': 0,
-                    'total_employees': 0
-                }
-            
-            team_stats[team]['total_employees'] += 1
-            team_stats[team]['performance'] += metrics['task_completion_rate'] * 100
-            team_stats[team]['completion_rate'] += metrics['time_efficiency'] * 100
+                # Performans metriklerini hesapla
+                metrics = calculate_performance_metrics(employee_data[-1])
+
+                # Departman istatistiklerini güncelle
+                dept = employee.get('department', 'Unknown')
+                if dept not in department_stats:
+                    department_stats[dept] = {
+                        'performance': 0,
+                        'completion_rate': 0,
+                        'total_employees': 0
+                    }
+                
+                department_stats[dept]['total_employees'] += 1
+                department_stats[dept]['performance'] += metrics['task_completion_rate'] * 100
+                department_stats[dept]['completion_rate'] += metrics['time_efficiency'] * 100
+
+                # Takım istatistiklerini güncelle
+                team = employee.get('team', 'Unknown')
+                if team not in team_stats:
+                    team_stats[team] = {
+                        'performance': 0,
+                        'completion_rate': 0,
+                        'total_employees': 0
+                    }
+                
+                team_stats[team]['total_employees'] += 1
+                team_stats[team]['performance'] += metrics['task_completion_rate'] * 100
+                team_stats[team]['completion_rate'] += metrics['time_efficiency'] * 100
+                
+            except Exception as emp_error:
+                print(f"Error processing employee {employee.get('id', 'unknown')}: {str(emp_error)}")
+                continue
 
         # Ortalamaları hesapla
         for dept in department_stats:
@@ -678,15 +722,22 @@ def analyze_all_employees():
                 team_stats[team]['performance'] = round(team_stats[team]['performance'] / total, 1)
                 team_stats[team]['completion_rate'] = round(team_stats[team]['completion_rate'] / total, 1)
 
-        return {
+        result = {
             "total_employees": total_employees,
             "department_statistics": department_stats,
             "team_statistics": team_stats
         }
+        
+        print("Analysis completed successfully")
+        return result
 
     except Exception as e:
         print(f"Error during analysis: {str(e)}")
-        raise Exception(f"Error analyzing employees: {str(e)}")
+        return {
+            "total_employees": 0,
+            "department_statistics": {},
+            "team_statistics": {}
+        }
 
 # Departman raporu oluşturma
 def generate_department_report_pdf(department_name, department_stats, employee_analyses, output_file):
@@ -962,15 +1013,7 @@ def generate_individual_report_pdf(employee_id, metrics, trends, recommendations
 
 # Çalışan Detaylı Analizi
 def analyze_individual_employee(employee_id):
-    """
-    Belirli bir çalışanın detaylı analizini yapar
-    
-    Args:
-        employee_id: Çalışan ID'si
-        
-    Returns:
-        dict: Detaylı analiz sonuçları
-    """
+    """Belirli bir çalışanın detaylı analizini yapar"""
     try:
         # Supabase'den çalışan verilerini çek
         response = supabase.table('employee_data').select('*').eq('employee_id', employee_id).execute()
