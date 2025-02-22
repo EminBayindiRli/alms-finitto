@@ -5,7 +5,8 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.1
 fpdf2==2.7.8
-supabase==2.3.4
+supabase==1.2.0
+gotrue==1.1.0
 numpy==1.26.4
 pandas==2.2.0
 scikit-learn==1.4.0
