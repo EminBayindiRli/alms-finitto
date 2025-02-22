@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 import os
@@ -24,19 +25,18 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# CORS ayarları
-origins = os.environ.get(
-    "CORS_ORIGINS",
-    "http://localhost:5173,http://localhost:3000,https://alms-last.netlify.app"
-).split(",")
-
+# CORS ayarları - tüm originlere izin ver (development için)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # Tüm originlere izin ver
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Statik dosyaları sunmak için
+if os.path.exists("static"):
+    app.mount("/static", StaticFiles(directory="static"), name="static")
 
 class AnalysisResponse(BaseModel):
     total_employees: int
@@ -55,7 +55,19 @@ class EmployeeAnalysisResponse(BaseModel):
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "ALMS API is running"}
+    return JSONResponse(
+        content={
+            "status": "ok",
+            "message": "ALMS API is running",
+            "version": "1.0.0",
+            "documentation": "/docs",
+            "endpoints": [
+                "/analyze/all",
+                "/analyze/employee/{employee_id}",
+                "/reports/employee/{employee_id}"
+            ]
+        }
+    )
 
 @app.get("/analyze/all", response_model=AnalysisResponse)
 async def analyze_all():
