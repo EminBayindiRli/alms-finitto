@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -33,10 +33,10 @@ app = FastAPI(
     openapi_url="/openapi.json"
 )
 
-# CORS ayarları - tüm originlere izin ver (development için)
+# CORS ayarları
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Tüm originlere izin ver
+    allow_origins=["https://inquisitive-bublanina-dc4455.netlify.app", "http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
