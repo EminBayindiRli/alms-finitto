@@ -37,12 +37,20 @@ app = FastAPI(
 )
 
 # CORS ayarları
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://inquisitive-bublanina-dc4455.netlify.app")
+ALLOWED_ORIGINS = [
+    FRONTEND_URL,
+    "http://localhost:5173",  # Local development
+    "http://localhost:3000",  # Alternative local port
+    "https://inquisitive-bublanina-dc4455.netlify.app",  # Production frontend
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Tüm originlere izin ver
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],  # Tüm HTTP metodlarına izin ver
-    allow_headers=["*"],  # Tüm headerlara izin ver
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
 )
 
 # Statik dosyaları sunmak için
