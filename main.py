@@ -37,19 +37,12 @@ app = FastAPI(
 )
 
 # CORS ayarları
-FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://alms-dashboard.netlify.app")
-ALLOWED_ORIGINS = [
-    FRONTEND_URL,
-    "http://localhost:5173",  # Local development
-    "http://localhost:3000",  # Alternative local port
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
+    allow_origins=["*"],  # Tüm originlere izin ver
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Tüm HTTP metodlarına izin ver
+    allow_headers=["*"],  # Tüm headerlara izin ver
 )
 
 # Statik dosyaları sunmak için
