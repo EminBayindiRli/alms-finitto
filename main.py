@@ -47,12 +47,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Frontend dosyalarını servis et
-if os.path.exists("static"):
-    app.mount("/", StaticFiles(directory="static", html=True), name="static")
-else:
-    print("Warning: static directory not found")
-
 # API routes
 class AnalysisResponse(BaseModel):
     total_employees: int
@@ -134,6 +128,18 @@ async def get_employee_report(employee_id: str):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# En son olarak frontend dosyalarını servis et
+if os.path.exists("static"):
+    print("Serving static files from /static directory")
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+    
+    @app.get("/health")
+    async def health_check():
+        return {"status": "healthy"}
+else:
+    print("Warning: static directory not found!")
+    print("Current directory contents:", os.listdir("."))
 
 if __name__ == "__main__":
     import uvicorn
