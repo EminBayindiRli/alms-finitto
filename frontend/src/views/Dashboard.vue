@@ -49,15 +49,15 @@ const completionRate = ref(0)
 const loading = ref(true)
 const error = ref(null)
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://alms-backend.onrender.com'
+const API_URL = ''
 
 onMounted(async () => {
   try {
     loading.value = true
     error.value = null
-    console.log('Fetching data from:', API_URL)
+    console.log('Fetching data from API...')
     
-    const response = await axios.get(`${API_URL}/analyze/all`)
+    const response = await axios.get('/api/analyze/all')
     console.log('Response:', response.data)
     
     const data = response.data

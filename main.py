@@ -38,7 +38,6 @@ app = FastAPI(
 
 # CORS ayarları
 origins = [
-    "https://inquisitive-bublanina-dc4455.netlify.app",
     "http://localhost:5173",
     "http://localhost:3000"
 ]
@@ -46,11 +45,13 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_credentials=False,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
-    expose_headers=["*"]
 )
+
+# Frontend dosyalarını servis et
+app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
 
 # Statik dosyaları sunmak için
 if os.path.exists("static"):
@@ -71,7 +72,7 @@ class EmployeeAnalysisResponse(BaseModel):
     performance_summary: Dict[str, Any]
     report_file: str
 
-@app.get("/")
+@app.get("/api/")
 async def root():
     try:
         return JSONResponse(
@@ -81,16 +82,16 @@ async def root():
                 "version": "1.0.0",
                 "documentation": "/docs",
                 "endpoints": [
-                    "/analyze/all",
-                    "/analyze/employee/{employee_id}",
-                    "/reports/employee/{employee_id}"
+                    "/api/analyze/all",
+                    "/api/analyze/employee/{employee_id}",
+                    "/api/reports/employee/{employee_id}"
                 ]
             }
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/analyze/all", response_model=AnalysisResponse)
+@app.get("/api/analyze/all", response_model=AnalysisResponse)
 async def analyze_all():
     try:
         print("Starting analyze_all endpoint...")
@@ -108,7 +109,7 @@ async def analyze_all():
         print(f"Error in analyze_all endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/generate/reports")
+@app.post("/api/generate/reports")
 async def generate_reports():
     try:
         # Reports dizini oluştur
@@ -127,7 +128,7 @@ async def generate_reports():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/employee/{employee_id}", response_model=EmployeeAnalysisResponse)
+@app.get("/api/employee/{employee_id}", response_model=EmployeeAnalysisResponse)
 async def get_employee_analysis(employee_id: str):
     try:
         results = analyze_individual_employee(employee_id)
@@ -139,7 +140,7 @@ async def get_employee_analysis(employee_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/employee/{employee_id}/report")
+@app.get("/api/employee/{employee_id}/report")
 async def get_employee_report(employee_id: str):
     try:
         report_path = f"reports/employee_{employee_id}_report.pdf"
