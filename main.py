@@ -51,11 +51,7 @@ app.add_middleware(
 )
 
 # Frontend dosyalarını servis et
-app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
-
-# Statik dosyaları sunmak için
-if os.path.exists("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 class AnalysisResponse(BaseModel):
     total_employees: int
@@ -72,13 +68,12 @@ class EmployeeAnalysisResponse(BaseModel):
     performance_summary: Dict[str, Any]
     report_file: str
 
-@app.get("/api/")
+@app.get("/api")
 async def root():
     try:
         return JSONResponse(
-            content={
-                "status": "ok",
-                "message": "ALMS API is running",
+            {
+                "status": "success",
                 "version": "1.0.0",
                 "documentation": "/docs",
                 "endpoints": [
@@ -113,17 +108,16 @@ async def analyze_all():
 async def generate_reports():
     try:
         # Reports dizini oluştur
-        os.makedirs("reports", exist_ok=True)
+        if not os.path.exists("reports"):
+            os.makedirs("reports")
+            
+        # Tüm raporları oluştur
+        report_paths = generate_all_reports()
         
-        # Raporları oluştur
-        generate_all_reports()
-        
-        # Oluşturulan raporların listesini döndür
-        report_files = [f for f in os.listdir("reports") if f.endswith('.pdf')]
         return {
             "status": "success",
-            "message": "Raporlar başarıyla oluşturuldu",
-            "reports": report_files
+            "message": "All reports generated successfully",
+            "report_paths": report_paths
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -132,10 +126,8 @@ async def generate_reports():
 async def get_employee_analysis(employee_id: str):
     try:
         results = analyze_individual_employee(employee_id)
-        
-        if "error" in results:
-            raise HTTPException(status_code=404, detail=results["error"])
-            
+        if not results:
+            raise HTTPException(status_code=404, detail="Employee not found")
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -148,8 +140,8 @@ async def get_employee_report(employee_id: str):
         if not os.path.exists(report_path):
             # Rapor yoksa oluştur
             results = analyze_individual_employee(employee_id)
-            if "error" in results:
-                raise HTTPException(status_code=404, detail=results["error"])
+            if not results:
+                raise HTTPException(status_code=404, detail="Employee not found")
             report_path = results["report_file"]
         
         return FileResponse(
