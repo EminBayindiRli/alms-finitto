@@ -37,10 +37,7 @@ app = FastAPI(
 )
 
 # CORS ayarları
-origins = [
-    "http://localhost:5173",
-    "http://localhost:3000"
-]
+origins = ["*"]  # Tüm originlere izin ver
 
 app.add_middleware(
     CORSMiddleware,
@@ -50,12 +47,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Frontend dosyalarını servis et
-if os.path.exists("frontend/dist"):
-    app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
-else:
-    print("Warning: frontend/dist directory not found")
-
+# API routes
 class AnalysisResponse(BaseModel):
     total_employees: int
     department_statistics: Dict[str, Dict[str, float]]
@@ -71,25 +63,7 @@ class EmployeeAnalysisResponse(BaseModel):
     performance_summary: Dict[str, Any]
     report_file: str
 
-@app.get("/api")
-async def root():
-    try:
-        return JSONResponse(
-            {
-                "status": "success",
-                "version": "1.0.0",
-                "documentation": "/docs",
-                "endpoints": [
-                    "/api/analyze/all",
-                    "/api/analyze/employee/{employee_id}",
-                    "/api/reports/employee/{employee_id}"
-                ]
-            }
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/api/analyze/all", response_model=AnalysisResponse)
+@app.get("/analyze/all", response_model=AnalysisResponse)
 async def analyze_all():
     try:
         print("Starting analyze_all endpoint...")
@@ -107,7 +81,7 @@ async def analyze_all():
         print(f"Error in analyze_all endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/generate/reports")
+@app.post("/generate/reports")
 async def generate_reports():
     try:
         # Reports dizini oluştur
@@ -125,7 +99,7 @@ async def generate_reports():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/employee/{employee_id}", response_model=EmployeeAnalysisResponse)
+@app.get("/employee/{employee_id}", response_model=EmployeeAnalysisResponse)
 async def get_employee_analysis(employee_id: str):
     try:
         results = analyze_individual_employee(employee_id)
@@ -135,7 +109,7 @@ async def get_employee_analysis(employee_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/api/employee/{employee_id}/report")
+@app.get("/employee/{employee_id}/report")
 async def get_employee_report(employee_id: str):
     try:
         report_path = f"reports/employee_{employee_id}_report.pdf"
@@ -154,6 +128,16 @@ async def get_employee_report(employee_id: str):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# Frontend dosyalarını servis et
+if os.path.exists("frontend/dist"):
+    app.mount("/app", StaticFiles(directory="frontend/dist", html=True), name="frontend")
+    
+    @app.get("/")
+    async def redirect_to_app():
+        return JSONResponse({"message": "Redirecting to /app"}, status_code=307, headers={"Location": "/app"})
+else:
+    print("Warning: frontend/dist directory not found")
 
 if __name__ == "__main__":
     import uvicorn

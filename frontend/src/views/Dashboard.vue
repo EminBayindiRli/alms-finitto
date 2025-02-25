@@ -49,15 +49,13 @@ const completionRate = ref(0)
 const loading = ref(true)
 const error = ref(null)
 
-const API_URL = ''
-
 onMounted(async () => {
   try {
     loading.value = true
     error.value = null
     console.log('Fetching data from API...')
     
-    const response = await axios.get(`${API_URL}/api/analyze/all`)
+    const response = await axios.get('/analyze/all')
     console.log('Response:', response.data)
     
     const data = response.data
