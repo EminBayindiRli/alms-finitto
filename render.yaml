@@ -25,10 +25,36 @@ services:
           type: web
           envVarKey: SUPABASE_KEY
       - key: FRONTEND_URL
-        value: "https://alms-dashboard.netlify.app"
+        value: "https://alms-frontend.onrender.com"  # Frontend URL'i güncellendi
       - key: CORS_ORIGINS
         value: "*"
     healthCheckPath: /health
     healthCheckTimeout: 100
     autoDeploy: true
     plan: starter # Free tier
+
+  - type: web
+    name: alms-frontend
+    env: static
+    region: frankfurt
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/dist
+    envVars:
+      - key: VITE_SUPABASE_URL
+        fromService:
+          name: alms-backend
+          type: web
+          envVarKey: SUPABASE_URL
+      - key: VITE_SUPABASE_ANON_KEY
+        fromService:
+          name: alms-backend
+          type: web
+          envVarKey: SUPABASE_KEY
+    headers:
+      - path: /*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
