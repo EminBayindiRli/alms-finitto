@@ -49,7 +49,7 @@ const completionRate = ref(0)
 const loading = ref(true)
 const error = ref(null)
 
-const API_URL = import.meta.env.VITE_API_URL || 'https://alms-backend-api.onrender.com'
+const API_URL = import.meta.env.VITE_API_URL || 'https://alms-backend.onrender.com'
 
 onMounted(async () => {
   try {
