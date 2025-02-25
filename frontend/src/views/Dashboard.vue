@@ -57,7 +57,7 @@ onMounted(async () => {
     error.value = null
     console.log('Fetching data from API...')
     
-    const response = await axios.get('/api/analyze/all')
+    const response = await axios.get(`${API_URL}/api/analyze/all`)
     console.log('Response:', response.data)
     
     const data = response.data

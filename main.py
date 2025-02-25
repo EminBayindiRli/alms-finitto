@@ -51,7 +51,10 @@ app.add_middleware(
 )
 
 # Frontend dosyalarını servis et
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+if os.path.exists("frontend/dist"):
+    app.mount("/", StaticFiles(directory="frontend/dist", html=True), name="frontend")
+else:
+    print("Warning: frontend/dist directory not found")
 
 class AnalysisResponse(BaseModel):
     total_employees: int
