@@ -47,6 +47,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Frontend dosyalarını servis et
+if os.path.exists("static"):
+    app.mount("/", StaticFiles(directory="static", html=True), name="static")
+else:
+    print("Warning: static directory not found")
+
 # API routes
 class AnalysisResponse(BaseModel):
     total_employees: int
@@ -128,16 +134,6 @@ async def get_employee_report(employee_id: str):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-# Frontend dosyalarını servis et
-if os.path.exists("frontend/dist"):
-    app.mount("/app", StaticFiles(directory="frontend/dist", html=True), name="frontend")
-    
-    @app.get("/")
-    async def redirect_to_app():
-        return JSONResponse({"message": "Redirecting to /app"}, status_code=307, headers={"Location": "/app"})
-else:
-    print("Warning: frontend/dist directory not found")
 
 if __name__ == "__main__":
     import uvicorn
