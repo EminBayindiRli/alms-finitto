@@ -3,11 +3,13 @@ services:
     name: alms-backend
     env: python
     region: frankfurt  # Europe region
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --log-level debug
+    buildCommand: ./render_build.sh
+    startCommand: python main.py
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.11
+      - key: NODE_VERSION
+        value: 18
       - key: SUPABASE_URL
         sync: false  # Render dashboard'dan ayarlanacak
       - key: SUPABASE_KEY
@@ -16,7 +18,7 @@ services:
         value: "https://alms-dashboard.netlify.app"
       - key: CORS_ORIGINS
         value: "*"
-    healthCheckPath: /
+    healthCheckPath: /health
     healthCheckTimeout: 100
     autoDeploy: true
     plan: starter # Free tier
