@@ -1,49 +1,58 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { supabase } from '@/utils/supabase'
+import LoginView from '@/views/LoginView.vue'
+import MainLayout from '@/components/layout/MainLayout.vue'
+import DashboardView from '@/views/DashboardView.vue'
+import DepartmentsView from '@/views/DepartmentsView.vue'
+import TeamsView from '@/views/TeamsView.vue'
+import EmployeesView from '@/views/EmployeesView.vue'
+import ManagementView from '@/views/ManagementView.vue'
+
+const routes = [
+  {
+    path: '/login',
+    name: 'login',
+    component: LoginView,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/',
+    component: MainLayout,
+    meta: { requiresAuth: true },
+    children: [
+      {
+        path: '',
+        name: 'dashboard',
+        component: DashboardView
+      },
+      {
+        path: 'departments',
+        name: 'departments',
+        component: DepartmentsView
+      },
+      {
+        path: 'teams',
+        name: 'teams',
+        component: TeamsView
+      },
+      {
+        path: 'employees',
+        name: 'employees',
+        component: EmployeesView
+      },
+      {
+        path: 'management',
+        name: 'management',
+        component: ManagementView,
+        meta: { requiresAdmin: true }
+      }
+    ]
+  }
+]
 
 const router = createRouter({
-  history: createWebHistory(),
-  routes: [
-    {
-      path: '/login',
-      name: 'login',
-      component: () => import('@/views/LoginView.vue'),
-      meta: { requiresAuth: false }
-    },
-    {
-      path: '/',
-      component: () => import('@/components/layout/MainLayout.vue'),
-      meta: { requiresAuth: true },
-      children: [
-        {
-          path: '',
-          name: 'dashboard',
-          component: () => import('@/views/DashboardView.vue')
-        },
-        {
-          path: 'departments',
-          name: 'departments',
-          component: () => import('@/views/DepartmentsView.vue')
-        },
-        {
-          path: 'teams',
-          name: 'teams',
-          component: () => import('@/views/TeamsView.vue')
-        },
-        {
-          path: 'employees',
-          name: 'employees',
-          component: () => import('@/views/EmployeesView.vue')
-        },
-        {
-          path: 'management',
-          name: 'management',
-          component: () => import('@/views/ManagementView.vue'),
-          meta: { requiresAdmin: true }
-        }
-      ]
-    }
-  ]
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
 })
 
 // Auth guard
@@ -57,13 +66,14 @@ router.beforeEach(async (to, from, next) => {
   } else if (to.path === '/login' && session) {
     next('/')
   } else if (requiresAdmin) {
-    const { data: profile } = await supabase
+    // Admin kontrolü
+    const { data } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session?.user.id)
+      .eq('id', session?.user?.id)
       .single()
-
-    if (profile?.role !== 'admin') {
+    
+    if (data?.role !== 'admin') {
       next('/')
     } else {
       next()

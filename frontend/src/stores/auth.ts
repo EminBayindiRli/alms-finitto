@@ -1,71 +1,67 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { supabase, getCurrentUser, isAdmin } from '@/utils/supabase'
+import { ref } from 'vue'
+import { supabase } from '@/utils/supabase'
 import type { User } from '@supabase/supabase-js'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
+  const userRole = ref<string>('')
   const loading = ref(false)
-  const isAdminUser = ref(false)
 
-  const isAuthenticated = computed(() => !!user.value)
-
-  async function loadUser() {
-    try {
-      loading.value = true
-      user.value = await getCurrentUser()
-      if (user.value) {
-        isAdminUser.value = await isAdmin()
-      }
-    } catch (error) {
-      console.error('Error loading user:', error)
-      user.value = null
-      isAdminUser.value = false
-    } finally {
-      loading.value = false
+  async function setUser(userData: User | null) {
+    user.value = userData
+    
+    // Kullanıcı rolünü Supabase'den al
+    if (userData) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userData.id)
+        .single()
+      
+      userRole.value = data?.role || 'user'
+    } else {
+      userRole.value = ''
     }
   }
 
-  async function login(email: string, password: string) {
+  async function checkSession() {
+    loading.value = true
     try {
-      loading.value = true
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
-      if (error) throw error
-      user.value = data.user
-      await loadUser()
+      const { data } = await supabase.auth.getSession()
+      if (data.session) {
+        await setUser(data.session.user)
+      }
     } catch (error) {
-      console.error('Error logging in:', error)
-      throw error
+      console.error('Session check error:', error)
     } finally {
       loading.value = false
     }
   }
 
   async function logout() {
+    loading.value = true
     try {
-      loading.value = true
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      user.value = null
-      isAdminUser.value = false
+      await supabase.auth.signOut()
+      await setUser(null)
     } catch (error) {
-      console.error('Error logging out:', error)
-      throw error
+      console.error('Logout error:', error)
     } finally {
       loading.value = false
     }
   }
 
+  function isAdmin() {
+    return userRole.value === 'admin'
+  }
+
   return {
     user,
+    userRole,
     loading,
-    isAdminUser,
-    isAuthenticated,
-    loadUser,
-    login,
+    setUser,
+    checkSession,
     logout,
+    isAdmin
   }
 })
