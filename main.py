@@ -25,6 +25,7 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://alms-frontend.onrender.co
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("WARNING: SUPABASE_URL and SUPABASE_KEY environment variables must be set")
+    print("Application will continue with dummy data")
     # Uygulama çalışmaya devam etsin, ama Supabase erişimi olmayacak
 
 # Supabase istemcisini oluştur
@@ -45,9 +46,12 @@ app = FastAPI(
 # CORS ayarları
 # Tüm originlere izin vermek yerine, belirli originlere izin ver
 origins = [
-    FRONTEND_URL,          # Frontend URL'i
-    "http://localhost:5173", # Frontend dev server
-    "http://localhost:8080"  # Alternatif dev server
+    FRONTEND_URL,                        # Frontend URL'i (env'den)
+    "https://alms-frontend.onrender.com", # Frontend prod URL
+    "https://aims-frontend.onrender.com", # Frontend alternatif prod URL
+    "http://localhost:5173",             # Frontend dev server
+    "http://localhost:8080",             # Alternatif dev server
+    "*"                                  # Geliştirme sırasında tüm originlere izin ver
 ]
 
 app.add_middleware(

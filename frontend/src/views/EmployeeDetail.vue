@@ -65,7 +65,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import axios from 'axios'
+import api from '../api'
 
 const route = useRoute()
 const employee = ref(null)
@@ -73,7 +73,7 @@ const loading = ref(true)
 
 onMounted(async () => {
   try {
-    const response = await axios.get(`https://alms-last.onrender.com/analyze/employee/${route.params.id}`)
+    const response = await api.get(`analyze/employee/${route.params.id}`)
     employee.value = response.data
   } catch (error) {
     console.error('Error fetching employee data:', error)
@@ -84,8 +84,8 @@ onMounted(async () => {
 
 const downloadReport = async () => {
   try {
-    const response = await axios.get(
-      `https://alms-last.onrender.com/reports/employee/${route.params.id}`,
+    const response = await api.get(
+      `reports/employee/${route.params.id}`,
       { responseType: 'blob' }
     )
     

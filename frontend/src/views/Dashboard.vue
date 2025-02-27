@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../api'
 
 const totalEmployees = ref(0)
 const avgPerformance = ref(0)
@@ -55,7 +55,7 @@ onMounted(async () => {
     error.value = null
     console.log('Fetching data from API...')
     
-    const response = await axios.get('/analyze/all')
+    const response = await api.get('/analyze/all')
     console.log('Response:', response.data)
     
     const data = response.data
