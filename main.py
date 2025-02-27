@@ -21,12 +21,18 @@ from analiz_eğitim import (
 # Supabase yapılandırması
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://alms-frontend.onrender.com")
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise ValueError("SUPABASE_URL and SUPABASE_KEY environment variables must be set")
+    print("WARNING: SUPABASE_URL and SUPABASE_KEY environment variables must be set")
+    # Uygulama çalışmaya devam etsin, ama Supabase erişimi olmayacak
 
 # Supabase istemcisini oluştur
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+try:
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY) if SUPABASE_URL and SUPABASE_KEY else None
+except Exception as e:
+    print(f"ERROR: Failed to create Supabase client: {e}")
+    supabase = None
 
 app = FastAPI(
     title="ALMS API",
@@ -37,13 +43,18 @@ app = FastAPI(
 )
 
 # CORS ayarları
-origins = ["*"]  # Tüm originlere izin ver
+# Tüm originlere izin vermek yerine, belirli originlere izin ver
+origins = [
+    FRONTEND_URL,          # Frontend URL'i
+    "http://localhost:5173", # Frontend dev server
+    "http://localhost:8080"  # Alternatif dev server
+]
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
