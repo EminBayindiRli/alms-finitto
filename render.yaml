@@ -25,9 +25,9 @@ services:
           type: web
           envVarKey: SUPABASE_KEY
       - key: FRONTEND_URL
-        value: "https://alms-frontend.onrender.com"  # Frontend URL'i güncellendi
+        value: "https://alms-frontend.onrender.com"  # Frontend URL'i güncelleyin
       - key: CORS_ORIGINS
-        value: "*"
+        value: "https://alms-frontend.onrender.com,http://localhost:5173"  # CORS izin verilen originler
     healthCheckPath: /health
     healthCheckTimeout: 100
     autoDeploy: true
