@@ -6,22 +6,44 @@ const getEnv = (key: string) => {
   return import.meta.env[key] || (window.ENV && window.ENV[key]) || undefined
 }
 
+// Supabase credentials alalım
 const supabaseUrl = getEnv('VITE_SUPABASE_URL')
 const supabaseAnonKey = getEnv('VITE_SUPABASE_ANON_KEY')
 
+// Hata durumunu kontrol et
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables')
-  // Hata fırlatmak yerine konsola yazalım
+  console.error('Missing Supabase environment variables:', { 
+    url: supabaseUrl ? 'defined' : 'undefined', 
+    key: supabaseAnonKey ? 'defined' : 'undefined' 
+  })
 }
 
-// Eğer credentials varsa client'ı oluştur, yoksa boş bir nesne döndür
-export const supabase = supabaseUrl && supabaseAnonKey 
+// createClient'ı çağırmadan önce null kontrolü yaparak oluşturalım
+export const supabase = (supabaseUrl && supabaseAnonKey) 
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
+  : {
+      // Fallback stub implementasyonu
+      auth: {
+        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        getSession: () => Promise.resolve({ data: { session: null } }),
+        signOut: () => Promise.resolve({ error: null }),
+        signUp: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        signIn: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') })
+      },
+      from: () => ({
+        select: () => ({
+          eq: () => ({
+            single: () => Promise.resolve({ data: null, error: null }),
+            maybeSingle: () => Promise.resolve({ data: null, error: null })
+          })
+        }),
+        insert: () => Promise.resolve({ error: null })
+      })
+    }
 
 export const getCurrentUser = async () => {
-  if (!supabase) {
-    console.error('Supabase client is not initialized')
+  if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Supabase is not configured. Cannot get current user.')
     return null
   }
   
