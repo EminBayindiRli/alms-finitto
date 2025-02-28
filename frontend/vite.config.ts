@@ -2,6 +2,15 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { fileURLToPath, URL } from 'node:url'
 
+// Terser'in yüklü olup olmadığını kontrol et
+let terserInstalled = false;
+try {
+  require.resolve('terser');
+  terserInstalled = true;
+} catch (e) {
+  console.warn('Terser not found, falling back to esbuild minifier');
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   // Çevresel değişkenleri yükle
@@ -43,14 +52,16 @@ export default defineConfig(({ mode }) => {
           }
         }
       },
-      // Minify seçenekleri
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,
-          drop_debugger: true
+      // Terser yoksa esbuild kullan (default)
+      minify: terserInstalled ? 'terser' : 'esbuild',
+      ...(terserInstalled ? {
+        terserOptions: {
+          compress: {
+            drop_console: true,
+            drop_debugger: true
+          }
         }
-      }
+      } : {})
     },
     define: {
       // Çevresel değişkenleri global olarak tanımla (gerekirse)

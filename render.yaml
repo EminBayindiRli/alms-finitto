@@ -37,7 +37,7 @@ services:
     name: alms-frontend
     env: static
     region: frankfurt
-    buildCommand: cd frontend && npm install && npm run build
+    buildCommand: cd frontend && npm install && npm install terser && npm run build
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
