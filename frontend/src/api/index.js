@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // API base URL'lerini yapılandır
-const baseURL = import.meta.env.VITE_API_URL || 'https://alms-backend.onrender.com';
+const baseURL = (import.meta.env.VITE_API_URL || 'https://alms-backend.onrender.com') + '/';
 
 // Axios instance oluştur
 const api = axios.create({

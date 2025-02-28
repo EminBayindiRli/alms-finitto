@@ -44,15 +44,21 @@ app = FastAPI(
 )
 
 # CORS ayarları
-# Tüm originlere izin vermek yerine, belirli originlere izin ver
+# Tüm originleri dikkatli bir şekilde belirleyelim
 origins = [
     FRONTEND_URL,                        # Frontend URL'i (env'den)
     "https://alms-frontend.onrender.com", # Frontend prod URL
-    "https://aims-frontend.onrender.com", # Frontend alternatif prod URL
+    "https://aims-frontend.onrender.com", # Frontend alternatif prod URL 
+    "https://alms-last-frontend.onrender.com", # Olası başka bir frontend URL
     "http://localhost:5173",             # Frontend dev server
     "http://localhost:8080",             # Alternatif dev server
-    "*"                                  # Geliştirme sırasında tüm originlere izin ver
+    "http://localhost:3000"              # Başka bir olası dev server
 ]
+
+# Env değişkeninden CORS_ORIGINS varsa, onları da ekleyelim
+if os.environ.get("CORS_ORIGINS"):
+    cors_origins = os.environ.get("CORS_ORIGINS").split(",")
+    origins.extend(cors_origins)
 
 app.add_middleware(
     CORSMiddleware,

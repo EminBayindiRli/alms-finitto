@@ -55,7 +55,7 @@ onMounted(async () => {
     error.value = null
     console.log('Fetching data from API...')
     
-    const response = await api.get('/analyze/all')
+    const response = await api.get('analyze/all')
     console.log('Response:', response.data)
     
     const data = response.data
