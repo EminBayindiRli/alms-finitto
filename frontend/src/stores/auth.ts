@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { supabase } from '@/utils/supabase'
 import type { User } from '@supabase/supabase-js'
 
@@ -7,6 +7,9 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
   const userRole = ref<string>('')
   const loading = ref(false)
+  
+  // Kullanıcının kimlik doğrulamasının yapılıp yapılmadığını kontrol eden hesaplanmış özellik
+  const isAuthenticated = computed(() => !!user.value)
 
   async function setUser(userData: User | null) {
     user.value = userData
@@ -22,6 +25,30 @@ export const useAuthStore = defineStore('auth', () => {
       userRole.value = data?.role || 'user'
     } else {
       userRole.value = ''
+    }
+  }
+
+  // Kullanıcı oturumunu kontrol et ve yükle
+  async function loadUser() {
+    loading.value = true
+    try {
+      console.log('Loading user session...')
+      const { data } = await supabase.auth.getSession()
+      console.log('Session data:', data)
+      
+      if (data.session) {
+        await setUser(data.session.user)
+        return true
+      } else {
+        await setUser(null)
+        return false
+      }
+    } catch (error) {
+      console.error('Error loading user:', error)
+      await setUser(null)
+      return false
+    } finally {
+      loading.value = false
     }
   }
 
@@ -59,7 +86,9 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     userRole,
     loading,
+    isAuthenticated,
     setUser,
+    loadUser,
     checkSession,
     logout,
     isAdmin
