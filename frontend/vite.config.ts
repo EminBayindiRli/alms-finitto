@@ -15,6 +15,17 @@ try {
 export default defineConfig(({ mode }) => {
   // Çevresel değişkenleri yükle
   const env = loadEnv(mode, process.cwd())
+
+  // Environment variable listesi - bunlar frontend için enjekte edilecek
+  const envList = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'VITE_API_URL'];
+  
+  // HTML enjeksiyonu için değişken değiştirme (replace) yapılandırması
+  const htmlEnvReplacements = {};
+  
+  // Her environment variable için bir replace konfigürasyonu oluştur
+  envList.forEach(key => {
+    htmlEnvReplacements[`%${key}%`] = env[key] || '';
+  });
   
   return {
     plugins: [vue()],
@@ -47,7 +58,7 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            vendor: ['vue', 'vue-router', 'axios'],
+            vendor: ['vue', 'vue-router', 'axios', 'pinia'],
             ui: ['@vue/runtime-core']
           }
         }
@@ -57,15 +68,21 @@ export default defineConfig(({ mode }) => {
       ...(terserInstalled ? {
         terserOptions: {
           compress: {
-            drop_console: true,
+            drop_console: false, // Console loglarını koru
             drop_debugger: true
           }
         }
       } : {})
     },
     define: {
-      // Çevresel değişkenleri global olarak tanımla (gerekirse)
+      // Çevresel değişkenleri global olarak tanımla
       __APP_ENV__: JSON.stringify(env.MODE)
+    },
+    // HTML dosyasına environment değişkenlerini enjekte et
+    experimental: {
+      renderBuiltUrl: (filename, { hostType }) => {
+        return filename;
+      }
     }
   }
 })
