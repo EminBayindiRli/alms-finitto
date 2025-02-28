@@ -50,22 +50,38 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 
 const authStore = useAuthStore()
 const router = useRouter()
+const loading = ref(true)
 
 onMounted(async () => {
+  loading.value = true
+  
   try {
-    await authStore.loadUser()
-    if (!authStore.isAuthenticated) {
+    console.log('App.vue onMounted, loading user...')
+    
+    // Önce authStore.loadUser() çağrısını yapıyoruz
+    const isLoggedIn = await authStore.loadUser()
+    console.log('User loaded, authenticated:', isLoggedIn)
+    
+    // Sonra duruma göre yönlendirme yapıyoruz
+    if (!isLoggedIn && router.currentRoute.value.path !== '/login') {
+      console.log('Redirecting to login page')
       router.push('/login')
     }
   } catch (error) {
-    console.error('Error loading user:', error)
-    router.push('/login')
+    console.error('Error in App.vue setup:', error)
+    
+    // Hata durumunda login sayfasına yönlendir
+    if (router.currentRoute.value.path !== '/login') {
+      router.push('/login')
+    }
+  } finally {
+    loading.value = false
   }
 })
 </script>

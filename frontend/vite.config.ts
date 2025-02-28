@@ -19,8 +19,8 @@ export default defineConfig(({ mode }) => {
   // Environment variable listesi - bunlar frontend için enjekte edilecek
   const envList = ['VITE_SUPABASE_URL', 'VITE_SUPABASE_ANON_KEY', 'VITE_API_URL'];
   
-  // HTML enjeksiyonu için değişken değiştirme (replace) yapılandırması
-  const htmlEnvReplacements = {};
+  // HTML enjeksiyonu için değişken değiştirme (replace) yapılandırması - tip tanımı ekledik
+  const htmlEnvReplacements: Record<string, string> = {};
   
   // Her environment variable için bir replace konfigürasyonu oluştur
   envList.forEach(key => {
@@ -57,26 +57,43 @@ export default defineConfig(({ mode }) => {
       assetsDir: 'assets',
       rollupOptions: {
         output: {
-          manualChunks: {
-            vendor: ['vue', 'vue-router', 'axios', 'pinia'],
-            ui: ['@vue/runtime-core']
+          manualChunks(id) {
+            // Modules dışında kalan tüm dosyaları tek bir chunk'a koy
+            if (id.includes('node_modules')) {
+              // node_modules içindeki paketleri ayır
+              if (id.includes('vue') || id.includes('@vue')) {
+                return 'vendor-vue';
+              } else if (id.includes('pinia')) {
+                return 'vendor-pinia';
+              } else if (id.includes('supabase')) {
+                return 'vendor-supabase';
+              } else {
+                return 'vendor-other';
+              }
+            }
           }
         }
       },
-      // Terser yoksa esbuild kullan (default)
-      minify: terserInstalled ? 'terser' : 'esbuild',
-      ...(terserInstalled ? {
-        terserOptions: {
-          compress: {
-            drop_console: false, // Console loglarını koru
-            drop_debugger: true
-          }
-        }
-      } : {})
+      // Minify işlemini devre dışı bırak (debugging için)
+      minify: false,
+      // Circular depdency uyarılarına dikkat et
+      commonjsOptions: {
+        strictRequires: true
+      },
+      // Otomatik code splitting yapma
+      cssCodeSplit: false
     },
     define: {
       // Çevresel değişkenleri global olarak tanımla
       __APP_ENV__: JSON.stringify(env.MODE)
+    },
+    optimizeDeps: {
+      // Force optimization for these packages
+      include: ['vue', 'vue-router', 'pinia', '@supabase/supabase-js'],
+      // Exclude these packages from optimization
+      exclude: [],
+      // Force bundle deps on browser
+      entries: ['./src/main.ts']
     },
     // HTML dosyasına environment değişkenlerini enjekte et
     experimental: {
