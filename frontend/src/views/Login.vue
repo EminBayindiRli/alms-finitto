@@ -35,83 +35,104 @@
                         <div class="login-options">
                             <h3 class="option-title">Giriş Yapılacak Hesap</h3>
                             <div class="options-container">
-                                <div class="option" :class="{ 'selected': userType === 'employee' }" @click="userType = 'employee'">
+                                <div class="option" :class="{ 'selected': userType === 'employee' }" @click="userType = 'employee'; setDemoCredentials('employee')">
                                     <i class="pi pi-user option-icon"></i>
                                     <span class="option-label">Çalışan</span>
                                 </div>
-                                <div class="option" :class="{ 'selected': userType === 'admin' }" @click="userType = 'admin'">
-                                    <i class="pi pi-cog option-icon"></i>
+                                <div class="option" :class="{ 'selected': userType === 'admin' }" @click="userType = 'admin'; setDemoCredentials('admin')">
+                                    <i class="pi pi-briefcase option-icon"></i>
                                     <span class="option-label">Yönetici</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <Button label="Giriş Yap" @click="login" class="login-button" />
-                        
-                        <div v-if="error" class="error-message">
-                            <i class="pi pi-exclamation-triangle"></i>
-                            <span>{{ error }}</span>
-                        </div>
+                        <Button label="Giriş Yap" @click="handleLogin" :loading="loading" icon="pi pi-sign-in" class="login-button" />
                     </div>
                 </div>
                 
-                <div class="forgot-password">
-                    <a href="#">Şifremi Unuttum</a>
+                <div v-if="submitted && email && password && userType === 'employee'" class="test-credentials">
+                    <p><b>Demo Çalışan:</b> employee@example.com / 123456</p>
                 </div>
-                
-                <div class="test-account-info">
-                    <div class="test-account-title">Test Hesapları</div>
-                    <div class="test-account">
-                        <strong>Çalışan:</strong> employee@example.com / 123456
-                    </div>
-                    <div class="test-account">
-                        <strong>Yönetici:</strong> admin@example.com / 123456
-                    </div>
+                <div v-if="submitted && email && password && userType === 'admin'" class="test-credentials">
+                    <p><b>Demo Yönetici:</b> admin@example.com / 123456</p>
                 </div>
             </div>
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            email: '',
-            password: '',
-            userType: 'employee',
-            error: '',
-            rememberMe: false,
-            submitted: false,
-            loading: false
-        };
-    },
-    methods: {
-        login() {
-            this.submitted = true;
-            this.error = '';
+<script setup>
+import { ref, reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from 'primevue/usetoast';
+import { login } from '../services/auth';
+import InputText from 'primevue/inputtext';
+import Password from 'primevue/password';
+import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
+
+const router = useRouter();
+const toast = useToast();
+
+// Form data
+const email = ref('');
+const password = ref('');
+const userType = ref('employee');
+const rememberMe = ref(false);
+const submitted = ref(false);
+const loading = ref(false);
+
+// Login function
+async function handleLogin() {
+    submitted.value = true;
+    
+    if (email.value && password.value) {
+        loading.value = true;
+        
+        try {
+            // Supabase login
+            const { data, error } = await login(email.value, password.value);
             
-            if (this.email && this.password) {
-                this.loading = true;
+            if (error) {
+                toast.add({ severity: 'error', summary: 'Giriş Başarısız', detail: error.message, life: 3000 });
+            } else {
+                // Check if user role matches the selected role
+                const userRole = data.user?.user_metadata?.role || 'employee';
                 
-                // Simüle edilmiş login işlemi
-                setTimeout(() => {
-                    // Basit bir demo doğrulama
-                    if ((this.email === 'employee@example.com' && this.password === '123456' && this.userType === 'employee') ||
-                        (this.email === 'admin@example.com' && this.password === '123456' && this.userType === 'admin')) {
-                        
-                        // Kullanıcı tipine göre yönlendirme
-                        this.$router.push('/dashboard');
-                    } else {
-                        this.error = 'Geçersiz kullanıcı adı, şifre veya kullanıcı tipi.';
-                    }
-                    
-                    this.loading = false;
-                }, 1000);
+                if (userRole !== userType.value) {
+                    toast.add({ 
+                        severity: 'warn', 
+                        summary: 'Yanlış Hesap Tipi', 
+                        detail: `Seçtiğiniz hesap tipi ile giriş yapılan hesap tipi uyuşmuyor.`, 
+                        life: 3000 
+                    });
+                } else {
+                    toast.add({ severity: 'success', summary: 'Giriş Başarılı', detail: 'Hoş geldiniz!', life: 3000 });
+                    router.push('/dashboard');
+                }
             }
+        } catch (err) {
+            toast.add({ severity: 'error', summary: 'Sistemsel Hata', detail: 'Bir sorun oluştu, lütfen tekrar deneyin.', life: 3000 });
+            console.error(err);
+        } finally {
+            loading.value = false;
         }
     }
-};
+}
+
+// Demo credentials for easy access
+const demoCredentials = reactive([
+    { role: 'employee', email: 'employee@example.com', password: '123456' },
+    { role: 'admin', email: 'admin@example.com', password: '123456' }
+]);
+
+function setDemoCredentials(userRole) {
+    const credentials = demoCredentials.find(cred => cred.role === userRole);
+    if (credentials) {
+        email.value = credentials.email;
+        password.value = credentials.password;
+    }
+}
 </script>
 
 <style scoped>
@@ -253,6 +274,12 @@ export default {
 .test-account {
     font-size: 14px;
     margin-bottom: 5px;
+    color: #666;
+}
+
+.test-credentials {
+    font-size: 14px;
+    margin-top: 10px;
     color: #666;
 }
 </style>
