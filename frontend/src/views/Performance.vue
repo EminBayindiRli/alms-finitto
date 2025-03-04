@@ -18,7 +18,7 @@ import { Chart } from 'primevue/chart';
 import RadioButton from 'primevue/radiobutton';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
-import TriStateCheckbox from 'primevue/tristatecheckbox';
+import { TriStateCheckbox } from 'primevue';
 import MultiSelect from 'primevue/multiselect';
 
 const toast = useToast();
