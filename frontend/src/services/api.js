@@ -1,5 +1,5 @@
 import { user } from './auth';
-import supabase from '../lib/supabase.js';
+import supabase from './supabase.js';
 
 // API URL from environment variables
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
