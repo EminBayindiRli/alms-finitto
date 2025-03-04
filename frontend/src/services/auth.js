@@ -1,5 +1,5 @@
-import supabase from '../lib/supabase';
 import { ref } from 'vue';
+import supabase from '../lib/supabase';
 
 // Authentication state
 export const user = ref(null);
