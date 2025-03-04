@@ -14,7 +14,7 @@ import Tag from 'primevue/tag';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 import Card from 'primevue/card';
-import { Chart } from 'primevue/chart';
+import Chart from 'primevue/chart';
 import RadioButton from 'primevue/radiobutton';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';

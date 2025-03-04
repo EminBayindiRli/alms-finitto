@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue';
-import { Chart } from 'primevue/chart';
+import Chart from 'primevue/chart';
 import { FilterService } from 'primevue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
