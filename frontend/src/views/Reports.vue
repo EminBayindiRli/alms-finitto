@@ -8,7 +8,7 @@ import Dropdown from 'primevue/dropdown';
 import MultiSelect from 'primevue/multiselect';
 import Calendar from 'primevue/calendar';
 import Card from 'primevue/card';
-import { Chart } from 'primevue/chart';
+import Chart from 'primevue/chart';
 import ProgressBar from 'primevue/progressbar';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';

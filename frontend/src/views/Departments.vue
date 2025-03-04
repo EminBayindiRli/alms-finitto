@@ -9,7 +9,7 @@ import Textarea from 'primevue/textarea';
 import Tag from 'primevue/tag';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
-import { Chart } from 'primevue/chart';
+import Chart from 'primevue/chart';
 import Card from 'primevue/card';
 
 const toast = useToast();
@@ -64,7 +64,7 @@ const departments = ref([
         averagePerformance: 86,
         completedTrainingsCount: 130,
         trainingCompletionRate: 82,
-        description: 'Şirketin pazarlama stratejilerini belirler, marka yönetimi ve pazar araştırması yapar.'
+        description: 'Şirketin pazarlama stratejilerini belirler, marka yönetimi ve pazar araştırmalarını yapar.'
     }
 ]);
 
