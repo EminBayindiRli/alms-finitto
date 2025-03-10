@@ -45,6 +45,7 @@ import {
   InputLeftElement,
   Checkbox,
   CheckboxGroup,
+  StatArrow,
 } from '@chakra-ui/react';
 import { 
   ChevronDownIcon, 
@@ -72,172 +73,152 @@ import {
 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { AdminService } from '../services/api';
+import { Bar, Radar, Line, Pie } from 'react-chartjs-2';
+
+// Register ChartJS components
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  RadialLinearScale,
+  ArcElement,
+  Title,
+  Tooltip as ChartTooltip,
+  Legend,
+  Filler
+} from 'chart.js';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  RadialLinearScale,
+  ArcElement,
+  Title,
+  ChartTooltip,
+  Legend,
+  Filler
+);
 
 // Sahte veri: Analiz Türleri
 const ANALYSIS_TYPES = [
   {
     id: 'performance',
-    name: 'Performans Analizi',
-    description: 'Çalışanların performans metriklerinin detaylı analizi',
+    name: 'Performance Analysis',
+    description: 'Detailed analysis of performance metrics',
     icon: FiBarChart2,
     color: 'blue',
   },
   {
     id: 'activity',
-    name: 'Aktivite Analizi',
-    description: 'Çalışanların sistem aktivitelerinin zaman analizi',
+    name: 'Activity Analysis',
+    description: 'Analysis of daily activities and time usage',
     icon: FiActivity,
     color: 'green',
   },
   {
     id: 'comparative',
-    name: 'Karşılaştırmalı Analiz',
-    description: 'Departmanlar veya çalışanlar arası karşılaştırma',
-    icon: FiTrendingUp,
+    name: 'Comparative Analysis',
+    description: 'Comparison between departments and teams',
+    icon: FiPieChart,
     color: 'orange',
   },
   {
     id: 'training',
-    name: 'Eğitim Etkililik Analizi',
-    description: 'Eğitimlerin performansa etkisinin analizi',
+    name: 'Training Effectiveness Analysis',
+    description: 'Analysis of training impact on performance',
     icon: FiZap,
     color: 'purple',
   },
   {
     id: 'trends',
-    name: 'Trend Analizi',
-    description: 'Zaman içinde performans ve aktivite trendleri',
+    name: 'Trend Analysis',
+    description: 'Performance and activity trends over time',
     icon: FiTrendingUp,
     color: 'teal',
   },
 ];
 
-// Performans Veri Seti (departmanlara göre çeşitli metrikler)
+// Sahte veri: Departmanlar
+const DEPARTMENTS = [
+  { id: 'all', name: 'All Departments' },
+  { id: 'sales', name: 'Sales' },
+  { id: 'product_development', name: 'Product Development' },
+  { id: 'hr', name: 'HR' },
+];
+
+// Sahte veri: Takımlar
+const TEAMS = [
+  { id: 'all', name: 'All Teams' },
+  { id: 'team1', name: 'Team-1' },
+  { id: 'team2', name: 'Team-2' },
+  { id: 'team3', name: 'Team-3' },
+];
+
+// Sahte veri: Dönemler
+const PERIODS = [
+  { id: 'last_7_days', name: 'Last 7 Days' },
+  { id: 'last_30_days', name: 'Last 30 Days' },
+  { id: 'last_90_days', name: 'Last 90 Days' },
+  { id: 'last_year', name: 'Last Year' },
+  { id: 'custom', name: 'Custom Date Range' },
+];
+
+// Sahte veri: Performans analizi
 const PERFORMANCE_DATA = {
-  departments: ['Product Development', 'Sales', 'HR', 'Marketing', 'Finance'],
+  departments: ['Sales', 'Product Development', 'HR'],
   metrics: {
-    overall_performance: [82, 75, 88, 71, 79],
-    email_efficiency: [78, 68, 85, 72, 75],
-    time_management: [85, 70, 92, 65, 80],
-    meeting_effectiveness: [76, 80, 86, 75, 82],
-    focus_time: [89, 72, 84, 68, 79],
-    collaboration: [84, 85, 90, 75, 78],
-  },
-  teams: {
-    'Product Development': {
-      names: ['Team-1', 'Team-2', 'Team-3'],
-      metrics: {
-        overall_performance: [85, 79, 83],
-        email_efficiency: [80, 75, 82],
-        time_management: [88, 81, 85],
-        meeting_effectiveness: [75, 77, 78],
-        focus_time: [92, 85, 88],
-        collaboration: [83, 84, 86],
-      }
-    },
-    'Sales': {
-      names: ['Team-1', 'Team-2'],
-      metrics: {
-        overall_performance: [77, 73],
-        email_efficiency: [70, 65],
-        time_management: [72, 68],
-        meeting_effectiveness: [83, 77],
-        focus_time: [75, 69],
-        collaboration: [88, 82],
-      }
-    }
+    overall_performance: [78, 85, 92],
+    email_efficiency: [65, 72, 88],
+    time_management: [70, 80, 85],
+    meeting_effectiveness: [75, 77, 90],
+    focus_time: [68, 82, 87],
+    collaboration: [77, 88, 94]
   }
 };
 
-// Aktivite Veri Seti (zaman bazlı aktivite metrikleri)
+// Sahte veri: Aktivite analizi
 const ACTIVITY_DATA = {
-  timeLabels: ['8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00'],
+  days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
   metrics: {
-    email_activity: [5, 18, 25, 30, 8, 15, 28, 22, 20, 10],
-    meeting_time: [0, 45, 30, 0, 0, 60, 45, 15, 0, 0],
-    focused_work: [45, 0, 10, 25, 30, 0, 0, 15, 30, 40],
-    collaboration: [10, 15, 15, 5, 0, 15, 15, 10, 10, 10],
+    email_sent: [45, 52, 48, 56, 42],
+    meetings_attended: [4, 6, 5, 3, 7],
+    tasks_completed: [12, 15, 10, 14, 11],
+    focus_hours: [3.5, 4.2, 3.8, 4.0, 3.2]
   },
-  daily: {
-    labels: ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma'],
-    metrics: {
-      email_sent: [35, 42, 38, 30, 25],
-      email_received: [68, 75, 82, 70, 55],
-      meeting_hours: [3.5, 4.2, 2.8, 5.0, 2.5],
-      focus_hours: [2.5, 1.8, 3.2, 1.5, 3.0],
-    }
-  }
+  total_active_users: 100,
+  avg_daily_sessions: 3.5
 };
 
-// Karşılaştırmalı Veri Seti (önceki döneme göre karşılaştırma)
+// Sahte veri: Karşılaştırmalı analiz
 const COMPARATIVE_DATA = {
-  metrics: [
-    { 
-      name: 'Email Verimliliği', 
-      current_period: 78, 
-      previous_period: 72,
-      change: 8.3,
-      trend: 'up'
-    },
-    { 
-      name: 'Toplantı Etkinliği', 
-      current_period: 82, 
-      previous_period: 85,
-      change: -3.5,
-      trend: 'down'
-    },
-    { 
-      name: 'Odaklanma Süresi', 
-      current_period: 65, 
-      previous_period: 58,
-      change: 12.1,
-      trend: 'up'
-    },
-    { 
-      name: 'İşbirliği İndeksi', 
-      current_period: 79, 
-      previous_period: 75,
-      change: 5.3,
-      trend: 'up'
-    },
-    { 
-      name: 'Zaman Yönetimi', 
-      current_period: 81, 
-      previous_period: 73,
-      change: 10.9,
-      trend: 'up'
-    },
-    { 
-      name: 'Genel Performans', 
-      current_period: 80, 
-      previous_period: 76,
-      change: 5.3,
-      trend: 'up'
-    },
-  ],
-  periods: {
-    current: 'Son 30 Gün',
-    previous: 'Önceki 30 Gün',
+  metrics: ['Overall Performance', 'Email Efficiency', 'Time Management', 'Meeting Effectiveness', 'Focus Time', 'Collaboration'],
+  departments: {
+    'Sales': [78, 65, 70, 75, 68, 80],
+    'Product Development': [85, 72, 80, 82, 78, 84],
+    'HR': [92, 88, 85, 90, 84, 86]
   }
 };
 
-// Eğitim Etki Verisi
-const TRAINING_IMPACT_DATA = {
-  training_types: ['Zaman Yönetimi', 'Email Yönetimi', 'Toplantı Verimliliği', 'İşbirliği', 'Odaklanma Teknikleri'],
+// Sahte veri: Eğitim analizi
+const TRAINING_DATA = {
+  departments: ['Sales', 'Product Development', 'HR'],
   metrics: {
-    before_training: [68, 72, 65, 75, 60],
-    after_training: [82, 85, 78, 85, 75],
-    long_term: [79, 81, 75, 82, 72],
-  },
-  completion_rate: 78,
-  average_improvement: 22,
-  best_performing: 'Zaman Yönetimi',
-  participants: 125,
+    training_completion_rate: [82, 88, 95],
+    avg_training_hours: [12, 18, 22],
+    skill_improvement: [8, 12, 15],
+    certification_rate: [60, 75, 90]
+  }
 };
 
 // Trend Verisi
 const TREND_DATA = {
-  months: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran'],
+  months: ['January', 'February', 'March', 'April', 'May', 'June'],
   metrics: {
     overall_performance: [72, 73, 75, 78, 80, 82],
     email_efficiency: [68, 70, 72, 75, 77, 78],
@@ -245,35 +226,6 @@ const TREND_DATA = {
     meeting_effectiveness: [70, 72, 74, 73, 78, 76],
   }
 };
-
-// Mock veri: Departmanlar
-const DEPARTMENTS = [
-  { id: 'all', name: 'Tümü' },
-  { id: 'product_development', name: 'Product Development' },
-  { id: 'sales', name: 'Sales' },
-  { id: 'hr', name: 'HR' },
-  { id: 'marketing', name: 'Marketing' },
-  { id: 'finance', name: 'Finance' },
-];
-
-// Mock veri: Takımlar
-const TEAMS = [
-  { id: 'all', name: 'Tümü' },
-  { id: 'team-1', name: 'Team-1' },
-  { id: 'team-2', name: 'Team-2' },
-  { id: 'team-3', name: 'Team-3' },
-];
-
-// Mock veri: Periyotlar
-const PERIODS = [
-  { id: 'last_7_days', name: 'Son 7 Gün' },
-  { id: 'last_30_days', name: 'Son 30 Gün' },
-  { id: 'last_90_days', name: 'Son 90 Gün' },
-  { id: 'current_month', name: 'Bu Ay' },
-  { id: 'current_quarter', name: 'Bu Çeyrek' },
-  { id: 'current_year', name: 'Bu Yıl' },
-  { id: 'custom', name: 'Özel Tarih Aralığı' },
-];
 
 // Renk skalası oluşturma yardımcı fonksiyonu
 const getColorScale = (value, inverse = false) => {
@@ -342,12 +294,12 @@ const Analysis = () => {
           }, 1000);
         } else {
           // Admin değilse bu sayfaya erişim yok
-          setError('Bu sayfaya erişim yetkiniz bulunmamaktadır.');
+          setError('You do not have permission to access this page.');
           setLoading(false);
         }
       } catch (err) {
-        console.error('Veri yükleme hatası:', err);
-        setError('Veri yüklenirken bir sorun oluştu.');
+        console.error('Data loading error:', err);
+        setError('There was a problem loading the data.');
         setLoading(false);
       }
     };
@@ -357,7 +309,7 @@ const Analysis = () => {
 
   const exportAnalysisData = () => {
     // Burası gerçek uygulamada API'ye istek atarak veriyi CSV veya Excel formatında indirecek
-    alert('Analiz verileri indiriliyor...');
+    alert('Downloading analysis data...');
   };
 
   // Analiz türüne göre başlık ve açıklama getirme
@@ -369,8 +321,8 @@ const Analysis = () => {
       icon: analysisType.icon,
       color: analysisType.color
     } : {
-      name: 'Analiz',
-      description: 'Sistem verilerinizin analizi',
+      name: 'Analysis',
+      description: 'Analysis of your system data',
       icon: FiBarChart2,
       color: 'blue'
     };
@@ -378,113 +330,247 @@ const Analysis = () => {
 
   // Performans analizi içeriği
   const renderPerformanceAnalysis = () => {
-    const data = PERFORMANCE_DATA;
+    // Departmana göre filtrelenmiş veriyi al
+    const filteredData = {
+      departments: [],
+      metrics: {
+        overall_performance: [],
+        email_efficiency: [],
+        time_management: [],
+        meeting_effectiveness: [],
+        focus_time: [],
+        collaboration: []
+      }
+    };
+    
+    // Filtreleme işlemi
+    if (selectedDepartment === 'all') {
+      // Tüm departmanlar seçiliyse
+      filteredData.departments = [...PERFORMANCE_DATA.departments];
+      Object.keys(PERFORMANCE_DATA.metrics).forEach(metric => {
+        filteredData.metrics[metric] = [...PERFORMANCE_DATA.metrics[metric]];
+      });
+    } else {
+      // Belirli bir departman seçiliyse
+      const deptIndex = DEPARTMENTS.findIndex(d => d.id === selectedDepartment) - 1; // 'all' hariç
+      if (deptIndex >= 0 && deptIndex < PERFORMANCE_DATA.departments.length) {
+        filteredData.departments = [PERFORMANCE_DATA.departments[deptIndex]];
+        Object.keys(PERFORMANCE_DATA.metrics).forEach(metric => {
+          filteredData.metrics[metric] = [PERFORMANCE_DATA.metrics[metric][deptIndex]];
+        });
+      }
+    }
+    
+    // Periyoda göre filtreleme simülasyonu (gerçek uygulamada backend'den güncel veri alınır)
+    console.log(`Veri periyot filtresi: ${selectedPeriod}`);
     
     return (
       <VStack spacing={6} align="stretch">
         <SimpleGrid columns={{ base: 1, md: 5 }} spacing={4}>
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Ortalama Performans</StatLabel>
+            <StatLabel>Average Performance</StatLabel>
             <StatNumber>
-              {data.metrics.overall_performance.reduce((a, b) => a + b, 0) / data.metrics.overall_performance.length}%
+              {filteredData.metrics.overall_performance.length > 0 
+                ? Math.round(filteredData.metrics.overall_performance.reduce((a, b) => a + b, 0) / filteredData.metrics.overall_performance.length) 
+                : 0}%
             </StatNumber>
-            <StatHelpText>Tüm departmanlar</StatHelpText>
+            <StatHelpText>
+              {selectedDepartment === 'all' ? 'Tüm departments' : DEPARTMENTS.find(d => d.id === selectedDepartment)?.name}
+            </StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Yüksek Performans</StatLabel>
+            <StatLabel>Highest Performance</StatLabel>
             <StatNumber>
-              {Math.max(...data.metrics.overall_performance)}%
+              {filteredData.metrics.overall_performance.length > 0 
+                ? Math.max(...filteredData.metrics.overall_performance)
+                : 0}%
             </StatNumber>
-            <StatHelpText>{data.departments[data.metrics.overall_performance.indexOf(Math.max(...data.metrics.overall_performance))]}</StatHelpText>
+            <StatHelpText>
+              {filteredData.departments[filteredData.metrics.overall_performance.indexOf(Math.max(...filteredData.metrics.overall_performance))] || ''}
+            </StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Düşük Performans</StatLabel>
+            <StatLabel>Lowest Performance</StatLabel>
             <StatNumber>
-              {Math.min(...data.metrics.overall_performance)}%
+              {filteredData.metrics.overall_performance.length > 0 
+                ? Math.min(...filteredData.metrics.overall_performance)
+                : 0}%
             </StatNumber>
-            <StatHelpText>{data.departments[data.metrics.overall_performance.indexOf(Math.min(...data.metrics.overall_performance))]}</StatHelpText>
+            <StatHelpText>
+              {filteredData.departments[filteredData.metrics.overall_performance.indexOf(Math.min(...filteredData.metrics.overall_performance))] || ''}
+            </StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En İyi Metrik</StatLabel>
+            <StatLabel>Best Metric</StatLabel>
             <StatNumber>
-              {Object.keys(data.metrics).reduce((a, b) => 
-                data.metrics[a].reduce((sum, val) => sum + val, 0) / data.metrics[a].length >
-                data.metrics[b].reduce((sum, val) => sum + val, 0) / data.metrics[b].length
-                ? a : b
+              {Object.keys(filteredData.metrics).reduce((a, b) => 
+                filteredData.metrics[a].length > 0 && filteredData.metrics[b].length > 0 &&
+                filteredData.metrics[a].reduce((sum, val) => sum + val, 0) / filteredData.metrics[a].length >
+                filteredData.metrics[b].reduce((sum, val) => sum + val, 0) / filteredData.metrics[b].length
+                ? a : b, 'overall_performance'
               ).split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
             </StatNumber>
-            <StatHelpText>Ortalama</StatHelpText>
+            <StatHelpText>Average highest</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Departman Sayısı</StatLabel>
+            <StatLabel>Period</StatLabel>
             <StatNumber>
-              {data.departments.length}
+              {PERIODS.find(p => p.id === selectedPeriod)?.name || ''}
             </StatNumber>
-            <StatHelpText>Tüm organizasyon</StatHelpText>
+            <StatHelpText>
+              {compareWithPrevious ? 'Comparative' : 'Single period'}
+            </StatHelpText>
           </Stat>
         </SimpleGrid>
 
-        <Card>
+        {/* Grafik Kartı */}
+        <Card bg={cardBg}>
           <CardHeader>
-            <Heading size="md">Departman Bazlı Performans Analizi</Heading>
+            <Heading size="md">Department Performance Comparison</Heading>
           </CardHeader>
           <CardBody>
-            <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-              <Box>
-                <Heading size="sm" mb={4}>Departman Performans Karşılaştırması</Heading>
-                <Text color="gray.500" mb={2}>Seçilen metriklere göre departmanların performans karşılaştırması</Text>
-                {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-                <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Departman Performans Grafiği</Text>
-                </Box>
-              </Box>
-              
-              <Box>
-                <Heading size="sm" mb={4}>Metrik Dağılımı</Heading>
-                <Text color="gray.500" mb={2}>Tüm performans metriklerinin departmanlara göre dağılımı</Text>
-                {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-                <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Metrik Dağılım Grafiği</Text>
-                </Box>
-              </Box>
-            </SimpleGrid>
+            <Box height="400px" ref={chartContainerRef}>
+              {/* Eğer grafik kütüphanesi yükleniyse grafiği göster, yoksa mesaj göster */}
+              {filteredData.departments.length > 0 ? (
+                <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+                  <Bar 
+                    data={{
+                      labels: filteredData.departments,
+                      datasets: [
+                        {
+                          label: 'Overall Performance (%)',
+                          data: filteredData.metrics.overall_performance,
+                          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+                        },
+                        {
+                          label: 'Email Efficiency (%)',
+                          data: filteredData.metrics.email_efficiency,
+                          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        },
+                        {
+                          label: 'Time Management (%)',
+                          data: filteredData.metrics.time_management,
+                          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        },
+                        {
+                          label: 'Meeting Effectiveness (%)',
+                          data: filteredData.metrics.meeting_effectiveness,
+                          backgroundColor: 'rgba(255, 206, 86, 0.5)',
+                        }
+                      ]
+                    }}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 100
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              ) : (
+                <Flex justify="center" align="center" height="100%">
+                  <Text>No data found for selected filters</Text>
+                </Flex>
+              )}
+            </Box>
           </CardBody>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <Heading size="md">Detaylı Metrik Analizi</Heading>
-          </CardHeader>
-          <CardBody>
-            <VStack spacing={6} align="stretch">
-              {selectedMetrics.map(metric => (
-                <Box key={metric}>
-                  <Heading size="sm" mb={2}>
-                    {metric.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
-                  </Heading>
-                  <SimpleGrid columns={{ base: 1, md: data.departments.length }} spacing={2}>
-                    {data.departments.map((department, index) => (
-                      <Card key={`${department}-${metric}`} variant="outline">
-                        <CardBody>
-                          <VStack>
-                            <Text fontWeight="bold">{department}</Text>
-                            <Text fontSize="2xl" color={`${getColorScale(data.metrics[metric][index])}.500`}>
-                              {data.metrics[metric][index]}%
-                            </Text>
-                          </VStack>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </SimpleGrid>
-                </Box>
-              ))}
-            </VStack>
-          </CardBody>
-        </Card>
+        {/* İkincil Kartlar */}
+        <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+          <Card bg={cardBg}>
+            <CardHeader>
+              <Heading size="md">Performance Distribution</Heading>
+            </CardHeader>
+            <CardBody>
+              <Box height="300px">
+                <Radar 
+                  data={{
+                    labels: ['Overall Performance', 'Email Efficiency', 'Time Management', 'Meeting Effectiveness', 'Focus Time', 'Collaboration'],
+                    datasets: [
+                      {
+                        label: selectedDepartment === 'all' ? 'Average Performance' : DEPARTMENTS.find(d => d.id === selectedDepartment)?.name,
+                        data: [
+                          filteredData.metrics.overall_performance.reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics.overall_performance.length),
+                          filteredData.metrics.email_efficiency.reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics.email_efficiency.length),
+                          filteredData.metrics.time_management.reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics.time_management.length),
+                          filteredData.metrics.meeting_effectiveness.reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics.meeting_effectiveness.length),
+                          filteredData.metrics.focus_time.reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics.focus_time.length),
+                          filteredData.metrics.collaboration.reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics.collaboration.length)
+                        ],
+                        backgroundColor: 'rgba(53, 162, 235, 0.2)',
+                        borderColor: 'rgba(53, 162, 235, 0.8)',
+                        borderWidth: 2,
+                      }
+                    ]
+                  }}
+                  options={{
+                    maintainAspectRatio: false,
+                    responsive: true,
+                    scales: {
+                      r: {
+                        min: 0,
+                        max: 100,
+                        beginAtZero: true,
+                        ticks: {
+                          stepSize: 20
+                        }
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            </CardBody>
+          </Card>
+
+          <Card bg={cardBg}>
+            <CardHeader>
+              <Heading size="md">Metric-Based Comparison</Heading>
+            </CardHeader>
+            <CardBody>
+              <Box height="300px">
+                {selectedMetrics.length > 0 ? (
+                  <Bar 
+                    data={{
+                      labels: selectedMetrics.map(m => m.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')),
+                      datasets: [{
+                        label: selectedDepartment === 'all' ? 'All Departments' : DEPARTMENTS.find(d => d.id === selectedDepartment)?.name,
+                        data: selectedMetrics.map(m => 
+                          filteredData.metrics[m] ? filteredData.metrics[m].reduce((a, b) => a + b, 0) / Math.max(1, filteredData.metrics[m].length) : 0
+                        ),
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 0.8)',
+                        borderWidth: 1
+                      }]
+                    }}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          max: 100
+                        }
+                      }
+                    }}
+                  />
+                ) : (
+                  <Flex justify="center" align="center" height="100%">
+                    <Text>Please select at least one metric</Text>
+                  </Flex>
+                )}
+              </Box>
+            </CardBody>
+          </Card>
+        </SimpleGrid>
       </VStack>
     );
   };
@@ -493,127 +579,156 @@ const Analysis = () => {
   const renderActivityAnalysis = () => {
     const data = ACTIVITY_DATA;
     
+    // Metrik hesaplamaları için güvenlik kontrolleri ekleyelim
+    const avgEmailsSent = data.metrics?.email_sent?.length > 0 
+      ? data.metrics.email_sent.reduce((a, b) => a + b, 0) / data.metrics.email_sent.length 
+      : 0;
+    
+    const avgEmailsReceived = data.metrics?.email_received?.length > 0
+      ? data.metrics.email_received.reduce((a, b) => a + b, 0) / data.metrics.email_received.length
+      : 0;
+    
+    const avgMeetings = data.metrics?.meetings_attended?.length > 0
+      ? data.metrics.meetings_attended.reduce((a, b) => a + b, 0) / data.metrics.meetings_attended.length
+      : 0;
+    
+    const totalFocusHours = data.metrics?.focus_hours?.reduce((a, b) => a + b, 0) || 0;
+    const avgFocusHours = data.metrics?.focus_hours?.length > 0 
+      ? totalFocusHours / data.metrics.focus_hours.length
+      : 0;
+
+    // Chart data
+    const emailChartData = {
+      labels: data.days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+      datasets: [
+        {
+          label: 'Sent Emails',
+          data: data.metrics?.email_sent || [45, 52, 48, 56, 42],
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        {
+          label: 'Meetings',
+          data: data.metrics?.meetings_attended || [4, 6, 5, 3, 7],
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        }
+      ]
+    };
+    
+    const timeDistributionData = {
+      labels: ['Focus Time', 'Meeting Time', 'Email Time'],
+      datasets: [
+        {
+          label: 'Hours',
+          data: [avgFocusHours, avgMeetings, 2], // Assuming 2 hours for email
+          backgroundColor: [
+            'rgba(53, 162, 235, 0.5)',
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+          ],
+        }
+      ]
+    };
+    
     return (
       <VStack spacing={6} align="stretch">
         <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Günlük Ortalama Email</StatLabel>
+            <StatLabel>Active Users</StatLabel>
             <StatNumber>
-              {data.daily.metrics.email_sent.reduce((a, b) => a + b, 0) / data.daily.metrics.email_sent.length +
-               data.daily.metrics.email_received.reduce((a, b) => a + b, 0) / data.daily.metrics.email_received.length}
+              {data.total_active_users || 0}
             </StatNumber>
-            <StatHelpText>Gönderilen ve alınan</StatHelpText>
+            <StatHelpText>Daily active users</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Günlük Toplantı Süresi</StatLabel>
+            <StatLabel>Average Daily Sessions</StatLabel>
             <StatNumber>
-              {data.daily.metrics.meeting_hours.reduce((a, b) => a + b, 0) / data.daily.metrics.meeting_hours.length} saat
+              {data.avg_daily_sessions || 0}
             </StatNumber>
-            <StatHelpText>Ortalama</StatHelpText>
+            <StatHelpText>Sessions per user</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Günlük Odaklanma Süresi</StatLabel>
+            <StatLabel>Average Focus Hours</StatLabel>
             <StatNumber>
-              {data.daily.metrics.focus_hours.reduce((a, b) => a + b, 0) / data.daily.metrics.focus_hours.length} saat
+              {avgFocusHours.toFixed(1)}
             </StatNumber>
-            <StatHelpText>Ortalama</StatHelpText>
+            <StatHelpText>Hours per day</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Aktif Gün</StatLabel>
+            <StatLabel>Average Meetings</StatLabel>
             <StatNumber>
-              {data.daily.labels[data.daily.metrics.email_sent.indexOf(Math.max(...data.daily.metrics.email_sent))]}
+              {avgMeetings.toFixed(1)}
             </StatNumber>
-            <StatHelpText>Email aktivitesi</StatHelpText>
+            <StatHelpText>Per day</StatHelpText>
           </Stat>
         </SimpleGrid>
-
+        
+        {/* Email Activity */}
         <Card>
           <CardHeader>
-            <Heading size="md">Günlük Aktivite Dağılımı</Heading>
+            <Heading size="md">Email Activity</Heading>
           </CardHeader>
           <CardBody>
-            <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
-              <Box>
-                <Heading size="sm" mb={4}>Saat Bazlı Aktivite</Heading>
-                <Text color="gray.500" mb={2}>Çalışma saatleri boyunca aktivite dağılımı</Text>
-                {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-                <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Saat Bazlı Aktivite Grafiği</Text>
-                </Box>
-              </Box>
-              
-              <Box>
-                <Heading size="sm" mb={4}>Haftalık Aktivite Dağılımı</Heading>
-                <Text color="gray.500" mb={2}>Haftanın günlerine göre email ve toplantı aktivitesi</Text>
-                {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-                <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Haftalık Aktivite Grafiği</Text>
-                </Box>
-              </Box>
-            </SimpleGrid>
+            <Box height="300px">
+              <Bar 
+                data={emailChartData}
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  scales: {
+                    y: {
+                      beginAtZero: true
+                    }
+                  }
+                }}
+              />
+            </Box>
           </CardBody>
         </Card>
-
+        
+        {/* Time Distribution */}
         <Card>
           <CardHeader>
-            <Heading size="md">Aktivite Detayları</Heading>
+            <Heading size="md">Time Distribution</Heading>
           </CardHeader>
           <CardBody>
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
               <Box>
-                <Heading size="sm" mb={4}>Email Aktivitesi</Heading>
-                <Box height="240px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Email Aktivite Grafiği</Text>
+                <Heading size="sm" mb={4}>Daily Activity</Heading>
+                <Box height="300px">
+                  <Line 
+                    data={{
+                      labels: data.days || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+                      datasets: [
+                        {
+                          label: 'Tasks Completed',
+                          data: data.metrics?.tasks_completed || [12, 15, 10, 14, 11],
+                          borderColor: 'rgb(75, 192, 192)',
+                          backgroundColor: 'rgba(75, 192, 192, 0.5)'
+                        }
+                      ]
+                    }}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }}
+                  />
                 </Box>
-                <HStack mt={4} justify="space-between">
-                  <Box>
-                    <Text color="gray.500">Toplam Giden</Text>
-                    <Text fontWeight="bold">{data.daily.metrics.email_sent.reduce((a, b) => a + b, 0)}</Text>
-                  </Box>
-                  <Box>
-                    <Text color="gray.500">Toplam Gelen</Text>
-                    <Text fontWeight="bold">{data.daily.metrics.email_received.reduce((a, b) => a + b, 0)}</Text>
-                  </Box>
-                  <Box>
-                    <Text color="gray.500">Günlük Ortalama</Text>
-                    <Text fontWeight="bold">
-                      {Math.round((data.daily.metrics.email_sent.reduce((a, b) => a + b, 0) + 
-                        data.daily.metrics.email_received.reduce((a, b) => a + b, 0)) / 
-                        data.daily.labels.length)}
-                    </Text>
-                  </Box>
-                </HStack>
               </Box>
               
               <Box>
-                <Heading size="sm" mb={4}>Toplantı ve Odaklanma Dengesi</Heading>
-                <Box height="240px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Toplantı/Odaklanma Denge Grafiği</Text>
+                <Heading size="sm" mb={4}>Time Distribution</Heading>
+                <Box height="300px">
+                  <Pie 
+                    data={timeDistributionData}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }}
+                  />
                 </Box>
-                <HStack mt={4} justify="space-between">
-                  <Box>
-                    <Text color="gray.500">Toplantı Zamanı</Text>
-                    <Text fontWeight="bold">
-                      {data.daily.metrics.meeting_hours.reduce((a, b) => a + b, 0)} saat
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text color="gray.500">Odaklanma Zamanı</Text>
-                    <Text fontWeight="bold">
-                      {data.daily.metrics.focus_hours.reduce((a, b) => a + b, 0)} saat
-                    </Text>
-                  </Box>
-                  <Box>
-                    <Text color="gray.500">Oran</Text>
-                    <Text fontWeight="bold">
-                      {Math.round((data.daily.metrics.focus_hours.reduce((a, b) => a + b, 0) / 
-                        data.daily.metrics.meeting_hours.reduce((a, b) => a + b, 0)) * 100) / 100}
-                    </Text>
-                  </Box>
-                </HStack>
               </Box>
             </SimpleGrid>
           </CardBody>
@@ -625,101 +740,169 @@ const Analysis = () => {
   const renderComparativeAnalysis = () => {
     const data = COMPARATIVE_DATA;
     
+    // Security checks for metrics improvement
+    const improvementRate = data.metrics && Array.isArray(data.metrics) 
+      ? Math.round(75) // Demo value
+      : 0;
+    
+    const maxImprovement = 15; // Demo value
+    const bestMetric = "Collaboration";
+    
+    // Chart data
+    const departmentComparisonData = {
+      labels: Object.keys(data.departments || {}),
+      datasets: [
+        {
+          label: 'Overall Performance',
+          data: Object.values(data.departments || {}).map(values => values[0]),
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        {
+          label: 'Email Efficiency',
+          data: Object.values(data.departments || {}).map(values => values[1]),
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+        {
+          label: 'Time Management',
+          data: Object.values(data.departments || {}).map(values => values[2]),
+          backgroundColor: 'rgba(255, 206, 86, 0.5)',
+        }
+      ]
+    };
+    
+    const metricsRadarData = {
+      labels: data.metrics || ['Overall Performance', 'Email Efficiency', 'Time Management', 'Meeting Effectiveness', 'Focus Time', 'Collaboration'],
+      datasets: [
+        {
+          label: 'Sales',
+          data: data.departments?.Sales || [78, 65, 70, 75, 68, 80],
+          backgroundColor: 'rgba(53, 162, 235, 0.2)',
+          borderColor: 'rgb(53, 162, 235)',
+          pointBackgroundColor: 'rgb(53, 162, 235)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgb(53, 162, 235)'
+        },
+        {
+          label: 'Product Development',
+          data: data.departments?.['Product Development'] || [85, 72, 80, 82, 78, 84],
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          borderColor: 'rgb(255, 99, 132)',
+          pointBackgroundColor: 'rgb(255, 99, 132)',
+          pointBorderColor: '#fff',
+          pointHoverBackgroundColor: '#fff',
+          pointHoverBorderColor: 'rgb(255, 99, 132)'
+        }
+      ]
+    };
+    
     return (
       <VStack spacing={6} align="stretch">
         <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>İyileşme Oranı</StatLabel>
+            <StatLabel>Improvement Rate</StatLabel>
             <StatNumber>
-              {Math.round(data.metrics.filter(m => m.trend === 'up').length / data.metrics.length * 100)}%
+              {improvementRate}%
             </StatNumber>
-            <StatHelpText>Metriklerin iyileşme oranı</StatHelpText>
+            <StatHelpText>Metrics improvement ratio</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Büyük İyileşme</StatLabel>
+            <StatLabel>Best Improvement</StatLabel>
             <StatNumber>
-              {Math.max(...data.metrics.map(m => m.change))}%
+              {maxImprovement}%
             </StatNumber>
-            <StatHelpText>{data.metrics.find(m => m.change === Math.max(...data.metrics.map(m => m.change))).name}</StatHelpText>
+            <StatHelpText>{bestMetric}</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Büyük Düşüş</StatLabel>
+            <StatLabel>Departments Compared</StatLabel>
             <StatNumber>
-              {Math.min(...data.metrics.map(m => m.change))}%
+              {Object.keys(data.departments || {}).length || 0}
             </StatNumber>
-            <StatHelpText>{data.metrics.find(m => m.change === Math.min(...data.metrics.map(m => m.change))).name}</StatHelpText>
+            <StatHelpText>Total departments</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Ortalama Değişim</StatLabel>
+            <StatLabel>Metrics Analyzed</StatLabel>
             <StatNumber>
-              {Math.round(data.metrics.reduce((a, b) => a + b.change, 0) / data.metrics.length * 10) / 10}%
+              {Array.isArray(data.metrics) ? data.metrics.length : 6}
             </StatNumber>
-            <StatHelpText>Tüm metrikler</StatHelpText>
+            <StatHelpText>Performance metrics</StatHelpText>
           </Stat>
         </SimpleGrid>
-
+        
+        {/* Department Comparison */}
         <Card>
           <CardHeader>
-            <Heading size="md">Dönemsel Karşılaştırma</Heading>
-            <Text color="gray.500">
-              {data.periods.current} ve {data.periods.previous} karşılaştırması
-            </Text>
+            <Heading size="md">Department Comparison</Heading>
           </CardHeader>
           <CardBody>
-            <Box>
-              {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-              <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center" mb={6}>
-                <Text>Karşılaştırmalı Metrik Grafiği</Text>
+            <Box height="400px">
+              <Bar 
+                data={departmentComparisonData}
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  scales: {
+                    y: {
+                      beginAtZero: true
+                    }
+                  }
+                }}
+              />
+            </Box>
+          </CardBody>
+        </Card>
+        
+        {/* Performance by Area */}
+        <Card>
+          <CardHeader>
+            <Heading size="md">Performance by Area</Heading>
+          </CardHeader>
+          <CardBody>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
+              <Box>
+                <Heading size="sm" mb={4}>Key Metrics Comparison</Heading>
+                <Box height="300px">
+                  <Bar 
+                    data={{
+                      labels: data.metrics?.slice(0, 3) || ['Overall Performance', 'Email Efficiency', 'Time Management'],
+                      datasets: Object.keys(data.departments || {}).map((dept, idx) => ({
+                        label: dept,
+                        data: data.departments[dept]?.slice(0, 3) || [75, 65, 70],
+                        backgroundColor: idx === 0 
+                          ? 'rgba(53, 162, 235, 0.5)' 
+                          : idx === 1 
+                            ? 'rgba(255, 99, 132, 0.5)'
+                            : 'rgba(255, 206, 86, 0.5)'
+                      }))
+                    }}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }}
+                  />
+                </Box>
               </Box>
               
-              <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
-                {data.metrics.map(metric => (
-                  <Card key={metric.name} variant="outline">
-                    <CardBody>
-                      <Flex align="start" justify="space-between">
-                        <VStack align="start" spacing={1}>
-                          <Text fontSize="sm" color="gray.500">
-                            {metric.name}
-                          </Text>
-                          <HStack>
-                            <Text fontSize="xl" fontWeight="bold">
-                              {metric.current_period}%
-                            </Text>
-                            <Flex 
-                              align="center" 
-                              color={metric.trend === 'up' ? 'green.500' : 'red.500'}
-                            >
-                              <Icon 
-                                as={getTrendIcon(metric.trend).icon} 
-                                mr={1} 
-                                transform={getTrendIcon(metric.trend).transform} 
-                              />
-                              <Text fontSize="sm">
-                                {metric.change}%
-                              </Text>
-                            </Flex>
-                          </HStack>
-                          <Text fontSize="xs" color="gray.500">
-                            Önceki: {metric.previous_period}%
-                          </Text>
-                        </VStack>
-                        <Box 
-                          w="60px" 
-                          h="40px" 
-                          bg="gray.100" 
-                          borderRadius="md"
-                        >
-                          {/* Mini grafik gelecek */}
-                        </Box>
-                      </Flex>
-                    </CardBody>
-                  </Card>
-                ))}
-              </SimpleGrid>
-            </Box>
+              <Box>
+                <Heading size="sm" mb={4}>Department Strengths</Heading>
+                <Box height="300px">
+                  <Radar 
+                    data={metricsRadarData}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true,
+                      scale: {
+                        min: 0,
+                        max: 100
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
+            </SimpleGrid>
           </CardBody>
         </Card>
       </VStack>
@@ -728,243 +911,360 @@ const Analysis = () => {
 
   // Eğitim analizi içeriği
   const renderTrainingAnalysis = () => {
-    const data = TRAINING_IMPACT_DATA;
+    const data = TRAINING_DATA;
+    
+    // Security checks and calculations
+    const avgImprovement = data.metrics?.skill_improvement?.length > 0
+      ? data.metrics.skill_improvement.reduce((a, b) => a + b, 0) / data.metrics.skill_improvement.length
+      : 0;
+    
+    const avgTrainingHours = data.metrics?.avg_training_hours?.length > 0
+      ? data.metrics.avg_training_hours.reduce((a, b) => a + b, 0) / data.metrics.avg_training_hours.length
+      : 0;
+    
+    const avgCompletionRate = data.metrics?.training_completion_rate?.length > 0
+      ? data.metrics.training_completion_rate.reduce((a, b) => a + b, 0) / data.metrics.training_completion_rate.length
+      : 0;
+    
+    const avgCertificationRate = data.metrics?.certification_rate?.length > 0
+      ? data.metrics.certification_rate.reduce((a, b) => a + b, 0) / data.metrics.certification_rate.length
+      : 0;
+
+    // Chart data
+    const trainingImpactData = {
+      labels: data.departments || ['Sales', 'Product Development', 'HR'],
+      datasets: [
+        {
+          label: 'Before Training',
+          data: [70, 65, 80], // Demo data
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+        {
+          label: 'After Training',
+          data: data.metrics?.skill_improvement.map(imp => 75 + imp) || [78, 77, 95],
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        }
+      ]
+    };
+    
+    const trainingHoursData = {
+      labels: data.departments || ['Sales', 'Product Development', 'HR'],
+      datasets: [
+        {
+          label: 'Training Hours',
+          data: data.metrics?.avg_training_hours || [12, 18, 22],
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        }
+      ]
+    };
+    
+    const effectivenessData = {
+      labels: data.departments || ['Sales', 'Product Development', 'HR'],
+      datasets: [
+        {
+          label: 'Completion Rate',
+          data: data.metrics?.training_completion_rate || [82, 88, 95],
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+        },
+        {
+          label: 'Certification Rate',
+          data: data.metrics?.certification_rate || [60, 75, 90],
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        }
+      ]
+    };
     
     return (
       <VStack spacing={6} align="stretch">
         <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Ortalama İyileşme</StatLabel>
+            <StatLabel>Average Improvement</StatLabel>
             <StatNumber>
-              {data.average_improvement}%
+              {avgImprovement.toFixed(1)}%
             </StatNumber>
-            <StatHelpText>Eğitim sonrası</StatHelpText>
+            <StatHelpText>After training</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Tamamlama Oranı</StatLabel>
+            <StatLabel>Average Training Hours</StatLabel>
             <StatNumber>
-              {data.completion_rate}%
+              {avgTrainingHours.toFixed(1)}h
             </StatNumber>
-            <StatHelpText>Tüm eğitimler</StatHelpText>
+            <StatHelpText>Per employee</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Etkili Eğitim</StatLabel>
+            <StatLabel>Completion Rate</StatLabel>
             <StatNumber>
-              {data.best_performing}
+              {avgCompletionRate.toFixed(1)}%
             </StatNumber>
-            <StatHelpText>Performans artışı</StatHelpText>
+            <StatHelpText>Assigned trainings</StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Toplam Katılımcı</StatLabel>
+            <StatLabel>Certification Rate</StatLabel>
             <StatNumber>
-              {data.participants}
+              {avgCertificationRate.toFixed(1)}%
             </StatNumber>
-            <StatHelpText>Tüm eğitimler</StatHelpText>
+            <StatHelpText>Success rate</StatHelpText>
           </Stat>
         </SimpleGrid>
-
+        
+        {/* Training Impact */}
         <Card>
           <CardHeader>
-            <Heading size="md">Eğitim Etkisi Analizi</Heading>
+            <Heading size="md">Training Impact</Heading>
           </CardHeader>
           <CardBody>
-            <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={6}>
+            <Box height="400px">
+              <Bar 
+                data={trainingImpactData}
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  scales: {
+                    y: {
+                      beginAtZero: true
+                    }
+                  }
+                }}
+              />
+            </Box>
+          </CardBody>
+        </Card>
+        
+        {/* Department Analysis */}
+        <Card>
+          <CardHeader>
+            <Heading size="md">Department Analysis</Heading>
+          </CardHeader>
+          <CardBody>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
               <Box>
-                <Heading size="sm" mb={4}>Eğitim Öncesi vs. Sonrası</Heading>
-                <Text color="gray.500" mb={2}>Eğitim öncesi ve sonrası performans değişimi</Text>
-                {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-                <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Eğitim Etkisi Grafiği</Text>
+                <Heading size="sm" mb={4}>Training Hours by Department</Heading>
+                <Box height="300px">
+                  <Bar 
+                    data={trainingHoursData}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }}
+                  />
                 </Box>
               </Box>
               
               <Box>
-                <Heading size="sm" mb={4}>Uzun Vadeli Etki</Heading>
-                <Text color="gray.500" mb={2}>Eğitim sonrası uzun vadeli performans etkisi</Text>
-                {/* Burada gerçek projede bir grafik kütüphanesi (Chart.js, ApexCharts vs.) kullanılacak */}
-                <Box height="300px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                  <Text>Uzun Vadeli Etki Grafiği</Text>
+                <Heading size="sm" mb={4}>Training Effectiveness</Heading>
+                <Box height="300px">
+                  <Bar 
+                    data={effectivenessData}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }}
+                  />
                 </Box>
               </Box>
             </SimpleGrid>
-          </CardBody>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <Heading size="md">Eğitim Bazlı Performans Analizi</Heading>
-          </CardHeader>
-          <CardBody>
-            <VStack spacing={4} align="stretch">
-              {data.training_types.map((training, index) => (
-                <Card key={training} variant="outline">
-                  <CardBody>
-                    <Flex direction={{ base: 'column', md: 'row' }} align="center" justify="space-between">
-                      <Box mb={{ base: 4, md: 0 }}>
-                        <Heading size="sm">{training}</Heading>
-                        <Text color="gray.500" fontSize="sm">Performans Değişimi</Text>
-                      </Box>
-                      
-                      <HStack spacing={8}>
-                        <VStack align="center">
-                          <Text color="gray.500" fontSize="xs">Öncesi</Text>
-                          <Text fontWeight="bold">{data.metrics.before_training[index]}%</Text>
-                        </VStack>
-                        
-                        <VStack align="center">
-                          <Text color="gray.500" fontSize="xs">Sonrası</Text>
-                          <Text fontWeight="bold" color="green.500">{data.metrics.after_training[index]}%</Text>
-                        </VStack>
-                        
-                        <VStack align="center">
-                          <Text color="gray.500" fontSize="xs">Uzun Vadeli</Text>
-                          <Text fontWeight="bold" color={data.metrics.long_term[index] >= data.metrics.after_training[index] * 0.9 ? "green.500" : "orange.500"}>
-                            {data.metrics.long_term[index]}%
-                          </Text>
-                        </VStack>
-                        
-                        <VStack align="center">
-                          <Text color="gray.500" fontSize="xs">İyileşme</Text>
-                          <Text fontWeight="bold" color="blue.500">
-                            {data.metrics.after_training[index] - data.metrics.before_training[index]}%
-                          </Text>
-                        </VStack>
-                      </HStack>
-                    </Flex>
-                  </CardBody>
-                </Card>
-              ))}
-            </VStack>
           </CardBody>
         </Card>
       </VStack>
     );
   };
 
-  // Trend analizi içeriği
+  // Trend Analysis Content
   const renderTrendAnalysis = () => {
+    // Create trend data
+    const trendData = {
+      labels: [],
+      datasets: []
+    };
+    
+    // Set labels based on period
+    if (selectedPeriod === 'last_7_days') {
+      trendData.labels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    } else if (selectedPeriod === 'last_30_days') {
+      trendData.labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+    } else if (selectedPeriod === 'last_90_days') {
+      trendData.labels = ['January', 'February', 'March'];
+    } else if (selectedPeriod === 'last_year') {
+      trendData.labels = ['Q1', 'Q2', 'Q3', 'Q4'];
+    } else {
+      trendData.labels = ['January', 'February', 'March', 'April', 'May', 'June'];
+    }
+    
+    // Demo data
     const data = TREND_DATA;
+    
+    // Chart data for performance trends
+    const performanceTrendData = {
+      labels: data.months || trendData.labels,
+      datasets: [
+        {
+          label: 'Overall Performance',
+          data: data.metrics?.overall_performance || [72, 73, 75, 78, 80, 82],
+          borderColor: 'rgba(53, 162, 235, 1)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+          tension: 0.3
+        },
+        {
+          label: 'Email Efficiency',
+          data: data.metrics?.email_efficiency || [68, 70, 72, 75, 77, 78],
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          tension: 0.3
+        }
+      ]
+    };
+    
+    // Chart data for metric breakdown
+    const metricBreakdownData = {
+      labels: ['Overall Performance', 'Email Efficiency', 'Time Management', 'Meeting Effectiveness'],
+      datasets: [
+        {
+          label: 'Current',
+          data: [82, 78, 85, 76],
+          backgroundColor: 'rgba(53, 162, 235, 0.5)'
+        },
+        {
+          label: 'Previous',
+          data: [75, 70, 73, 71],
+          backgroundColor: 'rgba(255, 99, 132, 0.5)'
+        }
+      ]
+    };
+    
+    // Chart data for forecast
+    const forecastData = {
+      labels: ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: 'Actual',
+          data: [82, 84, 85, null, null, null],
+          borderColor: 'rgba(53, 162, 235, 1)',
+          backgroundColor: 'rgba(53, 162, 235, 0.5)',
+          tension: 0.3
+        },
+        {
+          label: 'Forecast',
+          data: [null, null, 85, 86, 87, 88],
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+          borderDash: [5, 5],
+          tension: 0.3
+        }
+      ]
+    };
     
     return (
       <VStack spacing={6} align="stretch">
         <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Ortalama Artış</StatLabel>
+            <StatLabel>Overall Change</StatLabel>
             <StatNumber>
-              {Math.round((
-                data.metrics.overall_performance[data.metrics.overall_performance.length-1] / 
-                data.metrics.overall_performance[0] - 1) * 100)
-              }%
-            </StatNumber>
-            <StatHelpText>Genel Performans</StatHelpText>
-          </Stat>
-          
-          <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En Büyük Gelişme</StatLabel>
-            <StatNumber>
-              {Object.keys(data.metrics).map(key => {
-                const values = data.metrics[key];
-                return {
-                  metric: key,
-                  growth: (values[values.length-1] / values[0] - 1) * 100
-                };
-              }).sort((a, b) => b.growth - a.growth)[0].growth.toFixed(1)}%
+              +7.2%
             </StatNumber>
             <StatHelpText>
-              {Object.keys(data.metrics).map(key => {
-                const values = data.metrics[key];
-                return {
-                  metric: key,
-                  growth: (values[values.length-1] / values[0] - 1) * 100
-                };
-              }).sort((a, b) => b.growth - a.growth)[0].metric.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              <StatArrow type="increase" />
+              From previous period
             </StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>En İstikrarlı Metrik</StatLabel>
+            <StatLabel>Best Performing Metric</StatLabel>
             <StatNumber>
-              {Object.keys(data.metrics).map(key => {
-                const values = data.metrics[key];
-                // Standart sapmayı hesapla
-                const mean = values.reduce((a, b) => a + b, 0) / values.length;
-                const variance = values.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / values.length;
-                const stdDev = Math.sqrt(variance);
-                return {
-                  metric: key,
-                  std: stdDev
-                };
-              }).sort((a, b) => a.std - b.std)[0].metric.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+              Time Management
             </StatNumber>
-            <StatHelpText>En az dalgalanma gösteren</StatHelpText>
+            <StatHelpText>
+              <StatArrow type="increase" />
+              +12% improvement
+            </StatHelpText>
           </Stat>
           
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Analiz Süresi</StatLabel>
+            <StatLabel>Growth Rate</StatLabel>
             <StatNumber>
-              {data.months.length} ay
+              1.8%
             </StatNumber>
-            <StatHelpText>{data.months[0]} - {data.months[data.months.length-1]}</StatHelpText>
+            <StatHelpText>
+              Monthly average
+            </StatHelpText>
+          </Stat>
+          
+          <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
+            <StatLabel>Trend Consistency</StatLabel>
+            <StatNumber>
+              High
+            </StatNumber>
+            <StatHelpText>
+              89% reliability
+            </StatHelpText>
           </Stat>
         </SimpleGrid>
-
+        
+        {/* Performance Trends */}
         <Card>
           <CardHeader>
-            <Heading size="md">Zaman İçinde Performans Trendi</Heading>
+            <Heading size="md">Performance Trends</Heading>
           </CardHeader>
           <CardBody>
-            <Box height="400px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center" mb={6}>
-              <Text>Performans Trend Grafiği</Text>
+            <Box height="400px">
+              <Line 
+                data={performanceTrendData}
+                options={{
+                  maintainAspectRatio: false,
+                  responsive: true,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      max: 100
+                    }
+                  }
+                }}
+              />
             </Box>
-            
+          </CardBody>
+        </Card>
+        
+        {/* Trend Details */}
+        <Card>
+          <CardHeader>
+            <Heading size="md">Trend Details</Heading>
+          </CardHeader>
+          <CardBody>
             <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6}>
-              <Card>
-                <CardHeader>
-                  <Heading size="sm">Metrik Bazlı Büyüme</Heading>
-                </CardHeader>
-                <CardBody>
-                  <VStack spacing={4} align="stretch">
-                    {Object.keys(data.metrics).map(metric => {
-                      const values = data.metrics[metric];
-                      const growth = (values[values.length-1] / values[0] - 1) * 100;
-                      return (
-                        <Flex key={metric} justify="space-between" align="center">
-                          <Text>{metric.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}</Text>
-                          <HStack>
-                            <Text>{growth.toFixed(1)}%</Text>
-                            <Box w="100px">
-                              <Divider orientation="horizontal" />
-                            </Box>
-                            <HStack>
-                              <Text>{values[0]}%</Text>
-                              <Icon 
-                                as={FiTrendingUp} 
-                                color={growth >= 0 ? "green.500" : "red.500"} 
-                                transform={growth >= 0 ? "none" : "rotate(180deg)"}
-                              />
-                              <Text>{values[values.length-1]}%</Text>
-                            </HStack>
-                          </HStack>
-                        </Flex>
-                      );
-                    })}
-                  </VStack>
-                </CardBody>
-              </Card>
+              <Box>
+                <Heading size="sm" mb={4}>Metric Breakdown</Heading>
+                <Box height="300px">
+                  <Bar 
+                    data={metricBreakdownData}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true
+                    }}
+                  />
+                </Box>
+              </Box>
               
-              <Card>
-                <CardHeader>
-                  <Heading size="sm">Aylık Değişim Oranları</Heading>
-                </CardHeader>
-                <CardBody>
-                  <Box height="200px" bg="gray.100" borderRadius="md" display="flex" justifyContent="center" alignItems="center">
-                    <Text>Aylık Değişim Grafiği</Text>
-                  </Box>
-                </CardBody>
-              </Card>
+              <Box>
+                <Heading size="sm" mb={4}>Trend Prediction</Heading>
+                <Box height="300px">
+                  <Line 
+                    data={forecastData}
+                    options={{
+                      maintainAspectRatio: false,
+                      responsive: true,
+                      scales: {
+                        y: {
+                          beginAtZero: true,
+                          suggestedMin: 70,
+                          suggestedMax: 90
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+              </Box>
             </SimpleGrid>
           </CardBody>
         </Card>
@@ -985,7 +1285,7 @@ const Analysis = () => {
       <Alert status="error" variant="subtle" flexDirection="column" alignItems="center" justifyContent="center" textAlign="center" height="200px">
         <AlertIcon boxSize="40px" mr={0} />
         <Text mt={4} mb={1} fontSize="lg">
-          Erişim Hatası
+          Access Error
         </Text>
         <Text>{error}</Text>
       </Alert>
@@ -995,71 +1295,65 @@ const Analysis = () => {
   const analysisInfo = getAnalysisTypeInfo();
 
   return (
-    <Box p={5}>
+    <Box width="100%" maxWidth="100%">
+      {/* İşlem Çubuğu */}
+      <Flex justify="space-between" align="center" mb={6}>
+        <Heading>Data Analysis</Heading>
+        <HStack spacing={4}>
+          <Button leftIcon={<FiDownload />} onClick={exportAnalysisData}>
+            Download Analysis Data
+          </Button>
+        </HStack>
+      </Flex>
+      
       <VStack spacing={8} align="stretch">
         {/* Başlık */}
-        <Flex justifyContent="space-between" alignItems="center" wrap="wrap" gap={4}>
-          <Box>
-            <Heading size="lg">Analiz Merkezi</Heading>
-            <Text color="gray.600">
-              Sistem verilerinizi detaylı analiz edin ve raporlayın
-            </Text>
-          </Box>
-          <Button 
-            leftIcon={<DownloadIcon />} 
-            colorScheme="blue" 
-            onClick={exportAnalysisData}
-          >
-            Analiz Verilerini İndir
-          </Button>
-        </Flex>
-
-        {/* Analiz Türleri */}
-        <SimpleGrid columns={{ base: 1, md: 3, lg: 5 }} spacing={4}>
+        <Box>
+          <Heading size="md">Analysis Center</Heading>
+          <Text color="gray.600">
+            Analyze your data and generate reports
+          </Text>
+        </Box>
+        
+        {/* Analiz Türleri Grid */}
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4}>
           {ANALYSIS_TYPES.map(analysisType => (
-            <Card 
-              key={analysisType.id} 
-              bg={cardBg} 
-              cursor="pointer"
-              borderWidth={2}
-              borderColor={selectedAnalysisType === analysisType.id ? `${analysisType.color}.400` : 'transparent'}
-              _hover={{ shadow: 'md', borderColor: `${analysisType.color}.200` }}
-              transition="all 0.2s"
+            <Button
+              key={analysisType.id}
+              variant={selectedAnalysisType === analysisType.id ? 'solid' : 'outline'}
+              colorScheme={selectedAnalysisType === analysisType.id ? analysisType.color : 'gray'}
+              height="auto"
+              p={4}
+              justifyContent="flex-start"
+              alignItems="flex-start"
+              flexDirection="column"
               onClick={() => setSelectedAnalysisType(analysisType.id)}
+              whiteSpace="normal"
+              textAlign="left"
             >
-              <CardBody>
-                <Flex align="center">
-                  <Box 
-                    bg={`${analysisType.color}.50`} 
-                    color={`${analysisType.color}.500`} 
-                    p={3} 
-                    borderRadius="full" 
-                    mr={4}
-                  >
-                    <Icon as={analysisType.icon} boxSize={5} />
-                  </Box>
-                  <Box>
-                    <Heading size="sm">{analysisType.name}</Heading>
-                    <Text fontSize="xs" color="gray.500" mt={1}>{analysisType.description}</Text>
-                  </Box>
-                </Flex>
-              </CardBody>
-            </Card>
+              <Flex align="center" mb={2} width="100%">
+                <Icon as={analysisType.icon} mr={2} boxSize={5} />
+                <Text fontWeight="bold">{analysisType.name}</Text>
+              </Flex>
+              <Text 
+                fontSize="xs" 
+                color={selectedAnalysisType === analysisType.id ? `${analysisType.color}.50` : 'gray.500'}
+              >
+                {analysisType.description}
+              </Text>
+            </Button>
           ))}
         </SimpleGrid>
-
+        
         {/* Filtreler */}
         <Card>
           <CardHeader>
-            <Flex align="center">
-              <Icon as={FiFilter} mr={2} />
-              <Heading size="md">Filtreler</Heading>
-            </Flex>
+            <Heading size="sm">Filters</Heading>
           </CardHeader>
           <CardBody>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
               <FormControl>
-                <FormLabel>Departman</FormLabel>
+                <FormLabel>Department</FormLabel>
                 <Select 
                   value={selectedDepartment} 
                   onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -1070,8 +1364,8 @@ const Analysis = () => {
                 </Select>
               </FormControl>
 
-              <FormControl isDisabled={selectedDepartment === 'all'}>
-                <FormLabel>Takım</FormLabel>
+              <FormControl>
+                <FormLabel>Team</FormLabel>
                 <Select 
                   value={selectedTeam} 
                   onChange={(e) => setSelectedTeam(e.target.value)}
@@ -1083,7 +1377,7 @@ const Analysis = () => {
               </FormControl>
 
               <FormControl>
-                <FormLabel>Dönem</FormLabel>
+                <FormLabel>Period</FormLabel>
                 <Select 
                   value={selectedPeriod} 
                   onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -1098,7 +1392,7 @@ const Analysis = () => {
             {selectedPeriod === 'custom' && (
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mt={4}>
                 <FormControl>
-                  <FormLabel>Başlangıç Tarihi</FormLabel>
+                  <FormLabel>Start Date</FormLabel>
                   <Input 
                     type="date" 
                     value={startDate} 
@@ -1107,7 +1401,7 @@ const Analysis = () => {
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel>Bitiş Tarihi</FormLabel>
+                  <FormLabel>End Date</FormLabel>
                   <Input 
                     type="date" 
                     value={endDate} 
@@ -1120,7 +1414,7 @@ const Analysis = () => {
             <Flex mt={4} align="center">
               <FormControl display="flex" alignItems="center" maxW="300px">
                 <FormLabel htmlFor="compare-with-previous" mb="0">
-                  Önceki dönemle karşılaştır
+                  Compare with previous period
                 </FormLabel>
                 <Switch 
                   id="compare-with-previous" 
@@ -1132,7 +1426,7 @@ const Analysis = () => {
           </CardBody>
         </Card>
 
-        {/* Seçilen Analiz Türüne Göre İçerik */}
+        {/* Content Based on Selected Analysis Type */}
         <Card>
           <CardHeader>
             <Flex align="center">
@@ -1152,11 +1446,24 @@ const Analysis = () => {
             </Flex>
           </CardHeader>
           <CardBody>
-            {selectedAnalysisType === 'performance' && renderPerformanceAnalysis()}
-            {selectedAnalysisType === 'activity' && renderActivityAnalysis()}
-            {selectedAnalysisType === 'comparative' && renderComparativeAnalysis()}
-            {selectedAnalysisType === 'training' && renderTrainingAnalysis()}
-            {selectedAnalysisType === 'trends' && renderTrendAnalysis()}
+            <Tabs>
+              <TabList>
+                <Tab>Department Performance</Tab>
+                <Tab>Employee Comparison</Tab>
+                <Tab>Trend Analysis</Tab>
+              </TabList>
+              <TabPanels>
+                <TabPanel>
+                  {renderPerformanceAnalysis()}
+                </TabPanel>
+                <TabPanel>
+                  {renderActivityAnalysis()}
+                </TabPanel>
+                <TabPanel>
+                  {renderTrendAnalysis()}
+                </TabPanel>
+              </TabPanels>
+            </Tabs>
           </CardBody>
         </Card>
       </VStack>

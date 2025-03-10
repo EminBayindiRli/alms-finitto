@@ -75,36 +75,36 @@ import { AdminService } from '../services/api';
 const REPORT_TYPES = [
   {
     id: 'performance',
-    name: 'Performans Raporu',
-    description: 'Çalışanların performans metriklerinin detaylı analizi',
+    name: 'Performance Report',
+    description: 'Detailed analysis of employee performance metrics',
     icon: FiBarChart2,
     color: 'blue',
   },
   {
     id: 'activity',
-    name: 'Aktivite Raporu',
-    description: 'Çalışanların sistem aktivitelerinin zaman analizi',
+    name: 'Activity Report',
+    description: 'Time analysis of employee system activities',
     icon: FiClock,
     color: 'green',
   },
   {
     id: 'training',
-    name: 'Eğitim Raporu',
-    description: 'Eğitim tamamlama oranları ve eğitim etkinliği',
+    name: 'Training Report',
+    description: 'Training completion rates and effectiveness',
     icon: FiUserCheck,
     color: 'purple',
   },
   {
     id: 'comparison',
-    name: 'Karşılaştırma Raporu',
-    description: 'Departmanlar veya takımlar arası performans karşılaştırması',
+    name: 'Comparison Report',
+    description: 'Performance comparison between departments or teams',
     icon: FiTrendingUp,
     color: 'orange',
   },
   {
     id: 'summary',
-    name: 'Özet Rapor',
-    description: 'Tüm sistem verilerinin özet gösterimi',
+    name: 'Summary Report',
+    description: 'Overview of all system data',
     icon: FiPieChart,
     color: 'teal',
   }
@@ -114,67 +114,67 @@ const REPORT_TYPES = [
 const GENERATED_REPORTS = [
   {
     id: '1',
-    name: 'Q3 2023 Performans Raporu',
+    name: 'Q3 2023 Performance Report',
     type: 'performance',
     createdAt: '2023-09-30',
-    createdBy: 'Ahmet Yönetici',
+    createdBy: 'Ahmet Manager',
     size: '2.4 MB',
     status: 'completed',
     filters: {
-      department: 'Tümü',
+      department: 'All',
       period: 'Q3 2023',
     }
   },
   {
     id: '2',
-    name: 'Satış Ekibi Aktivite Analizi',
+    name: 'Sales Team Activity Analysis',
     type: 'activity',
     createdAt: '2023-09-15',
-    createdBy: 'Ahmet Yönetici',
+    createdBy: 'Ahmet Manager',
     size: '1.8 MB',
     status: 'completed',
     filters: {
       department: 'Sales',
-      period: 'Son 30 Gün',
+      period: 'Last 30 Days',
     }
   },
   {
     id: '3',
-    name: 'Eğitim Tamamlama Raporu - 2023',
+    name: 'Training Completion Report - 2023',
     type: 'training',
     createdAt: '2023-09-01',
-    createdBy: 'Sistem',
+    createdBy: 'System',
     size: '3.2 MB',
     status: 'completed',
     filters: {
-      department: 'Tümü',
-      period: '2023 Yılı',
+      department: 'All',
+      period: '2023 Year',
     }
   },
   {
     id: '4',
-    name: 'Departman Karşılaştırma Raporu',
+    name: 'Department Comparison Report',
     type: 'comparison',
     createdAt: '2023-08-15',
-    createdBy: 'Ahmet Yönetici',
+    createdBy: 'Ahmet Manager',
     size: '4.1 MB',
     status: 'completed',
     filters: {
-      department: 'Tümü',
-      period: 'Son 90 Gün',
+      department: 'All',
+      period: 'Last 90 Days',
     }
   },
   {
     id: '5',
-    name: 'Aylık Özet Rapor - Eylül 2023',
+    name: 'Monthly Summary Report - September 2023',
     type: 'summary',
     createdAt: '2023-09-30',
-    createdBy: 'Sistem',
+    createdBy: 'System',
     size: '1.5 MB',
     status: 'processing',
     filters: {
-      department: 'Tümü',
-      period: 'Eylül 2023',
+      department: 'All',
+      period: 'September 2023',
     }
   }
 ];
@@ -183,36 +183,36 @@ const GENERATED_REPORTS = [
 const SCHEDULED_REPORTS = [
   {
     id: '1',
-    name: 'Aylık Performans Özeti',
+    name: 'Monthly Performance Summary',
     type: 'performance',
-    frequency: 'Aylık',
+    frequency: 'Monthly',
     nextRunDate: '2023-10-01',
-    recipients: ['yonetim@alms-system.com', 'hr@alms-system.com'],
+    recipients: ['management@alms-system.com', 'hr@alms-system.com'],
     status: 'active',
   },
   {
     id: '2',
-    name: 'Haftalık Aktivite Raporu',
+    name: 'Weekly Activity Report',
     type: 'activity',
-    frequency: 'Haftalık',
+    frequency: 'Weekly',
     nextRunDate: '2023-10-02',
-    recipients: ['yonetim@alms-system.com'],
+    recipients: ['management@alms-system.com'],
     status: 'active',
   },
   {
     id: '3',
-    name: 'Çeyreklik Departman Karşılaştırması',
+    name: 'Quarterly Department Comparison',
     type: 'comparison',
-    frequency: 'Çeyreklik',
+    frequency: 'Quarterly',
     nextRunDate: '2023-12-31',
-    recipients: ['yonetim@alms-system.com', 'department_leads@alms-system.com'],
+    recipients: ['management@alms-system.com', 'department_leads@alms-system.com'],
     status: 'active',
   }
 ];
 
 // Mock veri: Departmanlar
 const DEPARTMENTS = [
-  { id: 'all', name: 'Tümü' },
+  { id: 'all', name: 'All' },
   { id: 'product_development', name: 'Product Development' },
   { id: 'sales', name: 'Sales' },
   { id: 'hr', name: 'HR' },
@@ -221,7 +221,7 @@ const DEPARTMENTS = [
 
 // Mock veri: Takımlar
 const TEAMS = [
-  { id: 'all', name: 'Tümü' },
+  { id: 'all', name: 'All' },
   { id: 'team-1', name: 'Team-1' },
   { id: 'team-2', name: 'Team-2' },
   { id: 'team-3', name: 'Team-3' },
@@ -229,13 +229,13 @@ const TEAMS = [
 
 // Mock veri: Periyotlar
 const PERIODS = [
-  { id: 'last_7_days', name: 'Son 7 Gün' },
-  { id: 'last_30_days', name: 'Son 30 Gün' },
-  { id: 'last_90_days', name: 'Son 90 Gün' },
-  { id: 'current_month', name: 'Bu Ay' },
-  { id: 'current_quarter', name: 'Bu Çeyrek' },
-  { id: 'current_year', name: 'Bu Yıl' },
-  { id: 'custom', name: 'Özel Tarih Aralığı' },
+  { id: 'last_7_days', name: 'Last 7 Days' },
+  { id: 'last_30_days', name: 'Last 30 Days' },
+  { id: 'last_90_days', name: 'Last 90 Days' },
+  { id: 'current_month', name: 'Current Month' },
+  { id: 'current_quarter', name: 'Current Quarter' },
+  { id: 'current_year', name: 'Current Year' },
+  { id: 'custom', name: 'Custom Date Range' },
 ];
 
 // Rapor türüne göre renk belirleme
@@ -327,7 +327,7 @@ const Reports = () => {
 
   const openReportCreationModal = (reportType) => {
     setSelectedReportType(reportType);
-    setReportName(`Yeni ${reportType.name} - ${new Date().toLocaleDateString('tr-TR')}`);
+    setReportName(`New ${reportType.name} - ${new Date().toLocaleDateString('en-US')}`);
     onOpen();
   };
 
@@ -353,20 +353,20 @@ const Reports = () => {
           name: reportName,
           type: selectedReportType.id,
           createdAt: new Date().toISOString().split('T')[0],
-          createdBy: 'Ahmet Yönetici',
+          createdBy: 'Ahmet Manager',
           size: '0 KB',
           status: 'processing',
           filters: {
-            department: DEPARTMENTS.find(d => d.id === selectedDepartment)?.name || 'Tümü',
-            period: PERIODS.find(p => p.id === selectedPeriod)?.name || 'Özel',
+            department: DEPARTMENTS.find(d => d.id === selectedDepartment)?.name || 'All',
+            period: PERIODS.find(p => p.id === selectedPeriod)?.name || 'Custom',
           }
         };
 
         setGeneratedReports([newReport, ...generatedReports]);
         
         toast({
-          title: 'Rapor Oluşturuldu',
-          description: 'Rapor oluşturma işlemi başlatıldı. İşlem tamamlandığında rapor indirilebilir olacak.',
+          title: 'Report Created',
+          description: 'Report creation process started. The report will be downloadable once the process is completed.',
           status: 'success',
           duration: 5000,
           isClosable: true,
@@ -388,10 +388,10 @@ const Reports = () => {
 
       }, 2000);
     } catch (error) {
-      console.error("Rapor oluşturma hatası:", error);
+      console.error("Report creation error:", error);
       toast({
-        title: "Rapor Oluşturma Hatası",
-        description: "Rapor oluşturulurken bir sorun oluştu.",
+        title: "Report Creation Error",
+        description: "An error occurred while creating the report.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -407,8 +407,8 @@ const Reports = () => {
       
       // PDF'i indir
       toast({
-        title: 'Rapor İndiriliyor',
-        description: 'Rapor indirme işlemi başlatıldı.',
+        title: 'Report Downloading',
+        description: 'Report download process started.',
         status: 'info',
         duration: 3000,
         isClosable: true,
@@ -417,18 +417,18 @@ const Reports = () => {
       // İndirme simülasyonu
       setTimeout(() => {
         toast({
-          title: 'Rapor İndirildi',
-          description: 'Rapor başarıyla indirildi.',
+          title: 'Report Downloaded',
+          description: 'Report downloaded successfully.',
           status: 'success',
           duration: 3000,
           isClosable: true,
         });
       }, 2000);
     } catch (error) {
-      console.error("Rapor indirme hatası:", error);
+      console.error("Report download error:", error);
       toast({
-        title: "İndirme Hatası",
-        description: "Rapor indirilirken bir sorun oluştu.",
+        title: "Download Error",
+        description: "An error occurred while downloading the report.",
         status: "error",
         duration: 5000,
         isClosable: true,
@@ -444,8 +444,8 @@ const Reports = () => {
     );
 
     toast({
-      title: 'Durum Güncellendi',
-      description: `Rapor durumu "${newStatus}" olarak güncellendi.`,
+      title: 'Status Updated',
+      description: `Report status updated to "${newStatus}".`,
       status: 'success',
       duration: 3000,
       isClosable: true,
@@ -456,8 +456,8 @@ const Reports = () => {
     setGeneratedReports(prev => prev.filter(report => report.id !== reportId));
     
     toast({
-      title: 'Rapor Silindi',
-      description: 'Rapor başarıyla silindi.',
+      title: 'Report Deleted',
+      description: 'Report deleted successfully.',
       status: 'success',
       duration: 3000,
       isClosable: true,
@@ -468,8 +468,8 @@ const Reports = () => {
     setScheduledReports(prev => prev.filter(schedule => schedule.id !== scheduleId));
     
     toast({
-      title: 'Programlı Rapor Silindi',
-      description: 'Programlı rapor başarıyla silindi.',
+      title: 'Scheduled Report Deleted',
+      description: 'Scheduled report deleted successfully.',
       status: 'success',
       duration: 3000,
       isClosable: true,
@@ -489,7 +489,7 @@ const Reports = () => {
       <Alert status="error" variant="subtle" flexDirection="column" alignItems="center" justifyContent="center" textAlign="center" height="200px">
         <AlertIcon boxSize="40px" mr={0} />
         <Text mt={4} mb={1} fontSize="lg">
-          Erişim Hatası
+          Access Error
         </Text>
         <Text>{error}</Text>
       </Alert>
@@ -497,79 +497,69 @@ const Reports = () => {
   }
 
   return (
-    <Box p={5}>
+    <Box width="100%" maxWidth="100%" p={5}>
       <VStack spacing={8} align="stretch">
         {/* Başlık */}
         <Flex justifyContent="space-between" alignItems="center" wrap="wrap" gap={4}>
           <Box>
-            <Heading size="lg">Raporlar</Heading>
+            <Heading size="lg">Reports</Heading>
             <Text color="gray.600">
-              Sistem raporlarını görüntüleyin, oluşturun ve indirin
+              View, create and download system reports
             </Text>
           </Box>
         </Flex>
 
-        {/* Rapor İstatistikleri */}
-        <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
-          <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Toplam Rapor</StatLabel>
+        {/* Report Statistics */}
+        <SimpleGrid columns={{ base: 1, md: 4 }} spacing={5}>
+          <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+            <StatLabel>Total Reports</StatLabel>
             <StatNumber>{generatedReports.length}</StatNumber>
-            <StatHelpText>Bu ay: {generatedReports.filter(r => r.createdAt.startsWith('2023-09')).length}</StatHelpText>
+            <StatHelpText>This month: {generatedReports.filter(r => r.createdAt.startsWith('2023-09')).length}</StatHelpText>
           </Stat>
 
-          <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Programlı Raporlar</StatLabel>
+          <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+            <StatLabel>Scheduled Reports</StatLabel>
             <StatNumber>{scheduledReports.length}</StatNumber>
-            <StatHelpText>Aktif: {scheduledReports.filter(s => s.status === 'active').length}</StatHelpText>
+            <StatHelpText>Active: {scheduledReports.filter(s => s.status === 'active').length}</StatHelpText>
           </Stat>
 
-          <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>İşlenen Raporlar</StatLabel>
+          <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+            <StatLabel>Processing Reports</StatLabel>
             <StatNumber>
               {generatedReports.filter(r => r.status === 'processing').length}
             </StatNumber>
-            <StatHelpText>Kuyrukta</StatHelpText>
+            <StatHelpText>In queue</StatHelpText>
           </Stat>
 
-          <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Depolama Kullanımı</StatLabel>
+          <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+            <StatLabel>Storage Usage</StatLabel>
             <StatNumber>
               {generatedReports.reduce((acc, report) => {
                 const size = parseFloat(report.size.replace(' MB', ''));
                 return acc + (isNaN(size) ? 0 : size);
               }, 0).toFixed(1)} MB
             </StatNumber>
-            <StatHelpText>Toplam</StatHelpText>
+            <StatHelpText>Total</StatHelpText>
           </Stat>
         </SimpleGrid>
 
-        {/* Rapor Türleri */}
+        {/* Create New Report */}
         <Box>
-          <Heading size="md" mb={4}>Yeni Rapor Oluştur</Heading>
-          <SimpleGrid columns={{ base: 1, md: 2, lg: 5 }} spacing={4}>
+          <Heading size="md" mb={4}>Create New Report</Heading>
+          <SimpleGrid columns={{ base: 1, md: 5 }} spacing={5}>
             {REPORT_TYPES.map(reportType => (
               <Card 
                 key={reportType.id} 
                 bg={cardBg} 
                 cursor="pointer" 
-                _hover={{ shadow: 'md', transform: 'translateY(-2px)' }}
-                transition="all 0.2s"
+                _hover={{ transform: 'translateY(-2px)', transition: 'all 0.2s' }}
                 onClick={() => openReportCreationModal(reportType)}
               >
                 <CardBody>
-                  <VStack spacing={3} align="start">
-                    <Flex 
-                      bg={`${reportType.color}.50`} 
-                      color={`${reportType.color}.500`} 
-                      p={3} 
-                      borderRadius="full"
-                    >
-                      <Icon as={reportType.icon} boxSize={5} />
-                    </Flex>
-                    <Box>
-                      <Heading size="sm">{reportType.name}</Heading>
-                      <Text fontSize="sm" color="gray.500" mt={1}>{reportType.description}</Text>
-                    </Box>
+                  <VStack spacing={3}>
+                    <Icon as={reportType.icon} boxSize={6} color={`${reportType.color}.500`} />
+                    <Text fontWeight="medium">{reportType.name}</Text>
+                    <Text fontSize="sm" color="gray.500">{reportType.description}</Text>
                   </VStack>
                 </CardBody>
               </Card>
@@ -577,26 +567,26 @@ const Reports = () => {
           </SimpleGrid>
         </Box>
 
-        {/* Raporlar Tabı */}
+        {/* Generated Reports */}
         <Box>
           <Tabs isFitted onChange={setActiveTab} index={activeTab}>
             <TabList mb="1em">
-              <Tab>Oluşturulan Raporlar</Tab>
-              <Tab>Programlı Raporlar</Tab>
+              <Tab>Generated Reports</Tab>
+              <Tab>Scheduled Reports</Tab>
             </TabList>
             <TabPanels>
-              {/* Oluşturulan Raporlar */}
+              {/* Generated Reports */}
               <TabPanel px={0}>
                 <Box overflowX="auto">
                   <Table variant="simple" borderRadius="md" boxShadow="sm" bg={cardBg}>
                     <Thead>
                       <Tr>
-                        <Th>Rapor Adı</Th>
-                        <Th>Oluşturulma Tarihi</Th>
-                        <Th>Filtreler</Th>
-                        <Th>Boyut</Th>
-                        <Th>Durum</Th>
-                        <Th>İşlemler</Th>
+                        <Th>Report Name</Th>
+                        <Th>Created Date</Th>
+                        <Th>Filters</Th>
+                        <Th>Size</Th>
+                        <Th>Status</Th>
+                        <Th>Actions</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
@@ -612,7 +602,7 @@ const Reports = () => {
                               <Box>
                                 <Text fontWeight="medium">{report.name}</Text>
                                 <Text fontSize="xs" color="gray.500">
-                                  {report.createdBy} tarafından oluşturuldu
+                                  {report.createdBy} created
                                 </Text>
                               </Box>
                             </Flex>
@@ -621,19 +611,19 @@ const Reports = () => {
                           <Td>
                             <VStack align="start" spacing={1}>
                               <Badge colorScheme="blue">
-                                Departman: {report.filters.department}
+                                Department: {report.filters.department}
                               </Badge>
                               <Badge colorScheme="purple">
-                                Dönem: {report.filters.period}
+                                Period: {report.filters.period}
                               </Badge>
                             </VStack>
                           </Td>
                           <Td>{report.size}</Td>
                           <Td>
                             <Badge colorScheme={getStatusColor(report.status)}>
-                              {report.status === 'completed' ? 'Tamamlandı' : 
-                               report.status === 'processing' ? 'İşleniyor' : 
-                               report.status === 'failed' ? 'Başarısız' : report.status}
+                              {report.status === 'completed' ? 'Completed' : 
+                               report.status === 'processing' ? 'Processing' : 
+                               report.status === 'failed' ? 'Failed' : report.status}
                             </Badge>
                           </Td>
                           <Td>
@@ -645,7 +635,7 @@ const Reports = () => {
                                 isDisabled={report.status !== 'completed'}
                                 onClick={() => downloadReport(report.id)}
                               >
-                                İndir
+                                Download
                               </Button>
                               <Button 
                                 size="sm" 
@@ -653,7 +643,7 @@ const Reports = () => {
                                 colorScheme="red"
                                 onClick={() => deleteReport(report.id)}
                               >
-                                Sil
+                                Delete
                               </Button>
                             </HStack>
                           </Td>
@@ -662,7 +652,7 @@ const Reports = () => {
                       {generatedReports.length === 0 && (
                         <Tr>
                           <Td colSpan={6} textAlign="center" py={4}>
-                            <Text color="gray.500">Henüz rapor oluşturulmamış.</Text>
+                            <Text color="gray.500">No reports created yet.</Text>
                           </Td>
                         </Tr>
                       )}
@@ -671,18 +661,18 @@ const Reports = () => {
                 </Box>
               </TabPanel>
 
-              {/* Programlı Raporlar */}
+              {/* Scheduled Reports */}
               <TabPanel px={0}>
                 <Box overflowX="auto">
                   <Table variant="simple" borderRadius="md" boxShadow="sm" bg={cardBg}>
                     <Thead>
                       <Tr>
-                        <Th>Rapor Adı</Th>
-                        <Th>Sıklık</Th>
-                        <Th>Sonraki Çalışma</Th>
-                        <Th>Alıcılar</Th>
-                        <Th>Durum</Th>
-                        <Th>İşlemler</Th>
+                        <Th>Report Name</Th>
+                        <Th>Schedule</Th>
+                        <Th>Last Run</Th>
+                        <Th>Next Run</Th>
+                        <Th>Status</Th>
+                        <Th>Actions</Th>
                       </Tr>
                     </Thead>
                     <Tbody>
@@ -722,27 +712,27 @@ const Reports = () => {
                           </Td>
                           <Td>
                             <Badge colorScheme={getStatusColor(schedule.status)}>
-                              {schedule.status === 'active' ? 'Aktif' : 'Pasif'}
+                              {schedule.status === 'active' ? 'Active' : 'Inactive'}
                             </Badge>
                           </Td>
                           <Td>
                             <HStack spacing={2}>
                               <Menu>
                                 <MenuButton as={Button} size="sm" rightIcon={<ChevronDownIcon />}>
-                                  Durum
+                                  Status
                                 </MenuButton>
                                 <MenuList>
                                   <MenuItem 
                                     icon={<CheckIcon />} 
                                     onClick={() => handleScheduleStatusChange(schedule.id, 'active')}
                                   >
-                                    Aktif
+                                    Active
                                   </MenuItem>
                                   <MenuItem 
                                     icon={<WarningIcon />} 
                                     onClick={() => handleScheduleStatusChange(schedule.id, 'inactive')}
                                   >
-                                    Pasif
+                                    Inactive
                                   </MenuItem>
                                 </MenuList>
                               </Menu>
@@ -752,7 +742,7 @@ const Reports = () => {
                                 colorScheme="red"
                                 onClick={() => deleteSchedule(schedule.id)}
                               >
-                                Sil
+                                Delete
                               </Button>
                             </HStack>
                           </Td>
@@ -761,7 +751,7 @@ const Reports = () => {
                       {scheduledReports.length === 0 && (
                         <Tr>
                           <Td colSpan={6} textAlign="center" py={4}>
-                            <Text color="gray.500">Henüz programlı rapor oluşturulmamış.</Text>
+                            <Text color="gray.500">No scheduled reports created yet.</Text>
                           </Td>
                         </Tr>
                       )}
@@ -786,24 +776,24 @@ const Reports = () => {
                       color={`${selectedReportType.color}.500`} 
                       mr={2} 
                     />
-                    <Text>{selectedReportType.name} Oluştur</Text>
+                    <Text>{selectedReportType.name} Create</Text>
                   </Flex>
                 </ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
                   <VStack spacing={6} align="stretch">
                     <FormControl>
-                      <FormLabel>Rapor Adı</FormLabel>
+                      <FormLabel>Report Name</FormLabel>
                       <Input 
                         value={reportName} 
                         onChange={(e) => setReportName(e.target.value)} 
-                        placeholder="Rapor adını girin" 
+                        placeholder="Enter report name" 
                       />
                     </FormControl>
 
                     <SimpleGrid columns={2} spacing={4}>
                       <FormControl>
-                        <FormLabel>Departman</FormLabel>
+                        <FormLabel>Department</FormLabel>
                         <Select 
                           value={selectedDepartment} 
                           onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -815,7 +805,7 @@ const Reports = () => {
                       </FormControl>
 
                       <FormControl>
-                        <FormLabel>Takım</FormLabel>
+                        <FormLabel>Team</FormLabel>
                         <Select 
                           value={selectedTeam} 
                           onChange={(e) => setSelectedTeam(e.target.value)}
@@ -829,7 +819,7 @@ const Reports = () => {
                     </SimpleGrid>
 
                     <FormControl>
-                      <FormLabel>Zaman Aralığı</FormLabel>
+                      <FormLabel>Date Range</FormLabel>
                       <Select 
                         value={selectedPeriod} 
                         onChange={(e) => setSelectedPeriod(e.target.value)}
@@ -843,7 +833,7 @@ const Reports = () => {
                     {selectedPeriod === 'custom' && (
                       <SimpleGrid columns={2} spacing={4}>
                         <FormControl>
-                          <FormLabel>Başlangıç Tarihi</FormLabel>
+                          <FormLabel>Start Date</FormLabel>
                           <Input 
                             type="date" 
                             value={startDate} 
@@ -852,7 +842,7 @@ const Reports = () => {
                         </FormControl>
 
                         <FormControl>
-                          <FormLabel>Bitiş Tarihi</FormLabel>
+                          <FormLabel>End Date</FormLabel>
                           <Input 
                             type="date" 
                             value={endDate} 
@@ -863,31 +853,31 @@ const Reports = () => {
                     )}
 
                     <Box>
-                      <FormLabel mb={2}>Dahil Edilecek Metrikler</FormLabel>
+                      <FormLabel mb={2}>Included Metrics</FormLabel>
                       <SimpleGrid columns={2} spacing={3}>
                         <Checkbox 
                           isChecked={includeMetrics.performance} 
                           onChange={(e) => setIncludeMetrics({...includeMetrics, performance: e.target.checked})}
                         >
-                          Performans Metrikleri
+                          Performance Metrics
                         </Checkbox>
                         <Checkbox 
                           isChecked={includeMetrics.activity} 
                           onChange={(e) => setIncludeMetrics({...includeMetrics, activity: e.target.checked})}
                         >
-                          Aktivite Verileri
+                          Activity Data
                         </Checkbox>
                         <Checkbox 
                           isChecked={includeMetrics.training} 
                           onChange={(e) => setIncludeMetrics({...includeMetrics, training: e.target.checked})}
                         >
-                          Eğitim Bilgileri
+                          Training Information
                         </Checkbox>
                         <Checkbox 
                           isChecked={includeMetrics.communications} 
                           onChange={(e) => setIncludeMetrics({...includeMetrics, communications: e.target.checked})}
                         >
-                          İletişim Analizi
+                          Communication Analysis
                         </Checkbox>
                       </SimpleGrid>
                     </Box>
@@ -895,12 +885,12 @@ const Reports = () => {
                     <Divider />
 
                     <Box>
-                      <Heading size="sm" mb={2}>Rapor Önizleme</Heading>
+                      <Heading size="sm" mb={2}>Report Preview</Heading>
                       <Card variant="outline">
                         <CardBody>
                           <VStack align="start" spacing={2}>
                             <Flex align="center" w="full" justify="space-between">
-                              <Text fontWeight="bold">{reportName || "Rapor Adı"}</Text>
+                              <Text fontWeight="bold">{reportName || "Report Name"}</Text>
                               <Badge colorScheme={getReportTypeColor(selectedReportType.id)}>
                                 {selectedReportType.name}
                               </Badge>
@@ -908,19 +898,19 @@ const Reports = () => {
                             <Divider />
                             <SimpleGrid columns={2} spacing={2} w="full">
                               <Box>
-                                <Text fontSize="sm" color="gray.500">Departman</Text>
-                                <Text>{DEPARTMENTS.find(d => d.id === selectedDepartment)?.name || 'Seçilmedi'}</Text>
+                                <Text fontSize="sm" color="gray.500">Department</Text>
+                                <Text>{DEPARTMENTS.find(d => d.id === selectedDepartment)?.name || 'Not Selected'}</Text>
                               </Box>
                               <Box>
-                                <Text fontSize="sm" color="gray.500">Takım</Text>
-                                <Text>{TEAMS.find(t => t.id === selectedTeam)?.name || 'Seçilmedi'}</Text>
+                                <Text fontSize="sm" color="gray.500">Team</Text>
+                                <Text>{TEAMS.find(t => t.id === selectedTeam)?.name || 'Not Selected'}</Text>
                               </Box>
                               <Box>
-                                <Text fontSize="sm" color="gray.500">Dönem</Text>
-                                <Text>{PERIODS.find(p => p.id === selectedPeriod)?.name || 'Seçilmedi'}</Text>
+                                <Text fontSize="sm" color="gray.500">Period</Text>
+                                <Text>{PERIODS.find(p => p.id === selectedPeriod)?.name || 'Not Selected'}</Text>
                               </Box>
                               <Box>
-                                <Text fontSize="sm" color="gray.500">Metrikler</Text>
+                                <Text fontSize="sm" color="gray.500">Metrics</Text>
                                 <Flex gap={1} flexWrap="wrap">
                                   {Object.entries(includeMetrics)
                                     .filter(([_, isChecked]) => isChecked)
@@ -946,12 +936,12 @@ const Reports = () => {
                     leftIcon={<FiBarChart2 />} 
                     onClick={createReport}
                     isLoading={isCreatingReport}
-                    loadingText="Oluşturuluyor..."
+                    loadingText="Creating..."
                     isDisabled={!reportName.trim()}
                   >
-                    Rapor Oluştur
+                    Create Report
                   </Button>
-                  <Button variant="ghost" onClick={onClose}>İptal</Button>
+                  <Button variant="ghost" onClick={onClose}>Cancel</Button>
                 </ModalFooter>
               </>
             )}

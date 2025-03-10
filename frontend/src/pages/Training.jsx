@@ -29,43 +29,49 @@ import {
   TabPanels,
   Tab,
   TabPanel,
+  Select,
+  Link,
+  Avatar,
+  Tooltip,
 } from '@chakra-ui/react';
-import { CheckCircleIcon, TimeIcon, StarIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { CheckCircleIcon, TimeIcon, StarIcon, ExternalLinkIcon, InfoIcon } from '@chakra-ui/icons';
 import { useAuth } from '../context/AuthContext';
 import { EmployeeService, AdminService } from '../services/api';
 
 // Sahte Microsoft Learn kursları
 const DEMO_COURSES = {
   "time_management": [
-    { id: 1, title: "Zaman Yönetimi Temelleri", duration: "1.5 saat", modules: 5, difficulty: "Başlangıç", url: "#", completed: true },
-    { id: 2, title: "Önceliklendirme Teknikleri", duration: "2 saat", modules: 7, difficulty: "Orta", url: "#", completed: false },
-    { id: 3, title: "Pomodoro ve Diğer Zaman Teknikleri", duration: "1 saat", modules: 4, difficulty: "Başlangıç", url: "#", completed: false },
+    { id: 1, title: "Time Management Fundamentals", duration: "1.5 hours", modules: 5, difficulty: "Beginner", url: "#", completed: true },
+    { id: 2, title: "Prioritization Techniques", duration: "2 hours", modules: 7, difficulty: "Intermediate", url: "#", completed: false },
+    { id: 3, title: "Pomodoro and Other Time Techniques", duration: "1 hour", modules: 4, difficulty: "Beginner", url: "#", completed: false },
   ],
   "communication": [
-    { id: 4, title: "Etkili İletişim Becerileri", duration: "3 saat", modules: 8, difficulty: "Orta", url: "#", completed: false },
-    { id: 5, title: "E-posta Yönetimi ve İletişimi", duration: "1.5 saat", modules: 5, difficulty: "Başlangıç", url: "#", completed: true },
-    { id: 6, title: "Zor Konuşmaları Yönetme", duration: "2.5 saat", modules: 6, difficulty: "İleri", url: "#", completed: false },
+    { id: 4, title: "Effective Communication Skills", duration: "3 hours", modules: 8, difficulty: "Intermediate", url: "#", completed: false },
+    { id: 5, title: "Email Management and Communication", duration: "1.5 hours", modules: 5, difficulty: "Beginner", url: "#", completed: true },
+    { id: 6, title: "Managing Difficult Conversations", duration: "2.5 hours", modules: 6, difficulty: "Advanced", url: "#", completed: false },
   ],
   "collaboration": [
-    { id: 7, title: "Takım İşbirliği Temel İlkeleri", duration: "2 saat", modules: 6, difficulty: "Başlangıç", url: "#", completed: false },
-    { id: 8, title: "Microsoft Teams ile Etkili İşbirliği", duration: "1.5 saat", modules: 5, difficulty: "Orta", url: "#", completed: false },
-    { id: 9, title: "Dijital İşbirliği Araçları", duration: "2 saat", modules: 7, difficulty: "Orta", url: "#", completed: false },
+    { id: 7, title: "Team Collaboration Fundamentals", duration: "2 hours", modules: 6, difficulty: "Beginner", url: "#", completed: false },
+    { id: 8, title: "Effective Collaboration with Microsoft Teams", duration: "1.5 hours", modules: 5, difficulty: "Intermediate", url: "#", completed: false },
+    { id: 9, title: "Digital Collaboration Tools", duration: "2 hours", modules: 7, difficulty: "Intermediate", url: "#", completed: false },
   ],
   "productivity": [
-    { id: 10, title: "Kişisel Üretkenlik ve Odaklanma", duration: "2.5 saat", modules: 8, difficulty: "Orta", url: "#", completed: true },
-    { id: 11, title: "Microsoft 365 ile Üretkenlik", duration: "3 saat", modules: 10, difficulty: "Orta", url: "#", completed: false },
-    { id: 12, title: "Üretkenlik için Not Alma Sistemleri", duration: "1 saat", modules: 4, difficulty: "Başlangıç", url: "#", completed: false },
+    { id: 10, title: "Personal Productivity and Focus", duration: "2.5 hours", modules: 8, difficulty: "Intermediate", url: "#", completed: true },
+    { id: 11, title: "Productivity with Microsoft 365", duration: "3 hours", modules: 10, difficulty: "Intermediate", url: "#", completed: false },
+    { id: 12, title: "Note Taking Systems for Productivity", duration: "1 hour", modules: 4, difficulty: "Beginner", url: "#", completed: false },
   ]
 };
 
 const Training = () => {
-  const { isAdmin, user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [employeeData, setEmployeeData] = useState(null);
   const [adminData, setAdminData] = useState(null);
   const [allEmployees, setAllEmployees] = useState([]);
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [selectedEmployee, setSelectedEmployee] = useState('');
+  const [employeeRecommendations, setEmployeeRecommendations] = useState([]);
+  const [assignedCourses, setAssignedCourses] = useState({});
   const toast = useToast();
 
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -88,10 +94,17 @@ const Training = () => {
             { id: '4', name: 'Zeynep Demir', department: 'Product Development', team: 'Team-2' },
             { id: '5', name: 'Mustafa Şahin', department: 'Sales', team: 'Team-1' },
           ]);
+          
+          // Atanmış kurslar için boş bir nesne oluştur
+          const initialAssignedCourses = {};
+          allEmployees.forEach(emp => {
+            initialAssignedCourses[emp.id] = [];
+          });
+          setAssignedCourses(initialAssignedCourses);
         } else {
           // Çalışan verilerini yükle
           const employeeId = user?.id || '1';
-          const data = await EmployeeService.getAnalysis(employeeId);
+          const data = await EmployeeService.getEmployeeAnalysis(employeeId);
           setEmployeeData(data);
         }
       } catch (err) {
@@ -104,12 +117,34 @@ const Training = () => {
 
     fetchData();
   }, [user, isAdmin]);
+  
+  // Çalışan seçildiğinde önerileri getir
+  useEffect(() => {
+    const fetchEmployeeRecommendations = async () => {
+      if (selectedEmployee) {
+        try {
+          // Seçilen çalışanın verilerini getir
+          const data = await EmployeeService.getEmployeeAnalysis(selectedEmployee);
+          if (data && data.recommendations) {
+            setEmployeeRecommendations(data.recommendations);
+          }
+        } catch (err) {
+          console.error('Çalışan önerileri yüklenirken hata:', err);
+          setEmployeeRecommendations([]);
+        }
+      } else {
+        setEmployeeRecommendations([]);
+      }
+    };
+    
+    fetchEmployeeRecommendations();
+  }, [selectedEmployee]);
 
   // Eğitim tamamlandı işlevleri
   const handleCompleteTraining = (courseId) => {
     toast({
-      title: "Eğitim Tamamlandı",
-      description: "Eğitimi başarıyla tamamladınız ve sisteme kaydedildi.",
+      title: "Training Completed",
+      description: "You have successfully completed the training and it has been saved to the system.",
       status: "success",
       duration: 3000,
       isClosable: true,
@@ -117,10 +152,39 @@ const Training = () => {
   };
 
   // Admin tarafından eğitim atama işlevi
-  const handleAssignTraining = (courseId, employeeId) => {
+  const handleAssignTraining = (course, employeeId) => {
+    if (!employeeId) {
+      toast({
+        title: "Error",
+        description: "Please select an employee first.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    // Atanmış kursları güncelle
+    setAssignedCourses(prev => {
+      const updatedCourses = { ...prev };
+      if (!updatedCourses[employeeId]) {
+        updatedCourses[employeeId] = [];
+      }
+      
+      // Kurs zaten atanmış mı kontrol et
+      const alreadyAssigned = updatedCourses[employeeId].some(c => c.id === course.id);
+      if (!alreadyAssigned) {
+        updatedCourses[employeeId].push(course);
+      }
+      
+      return updatedCourses;
+    });
+    
+    // Başarı mesajı göster
+    const employeeName = allEmployees.find(e => e.id === employeeId)?.name || 'Employee';
     toast({
-      title: "Eğitim Atandı",
-      description: "Seçili eğitim çalışana başarıyla atandı.",
+      title: "Training Assigned",
+      description: `"${course.title}" training has been successfully assigned to ${employeeName}.`,
       status: "success",
       duration: 3000,
       isClosable: true,
@@ -134,314 +198,194 @@ const Training = () => {
     return "green";
   };
 
-  // Çalışan eğitim önerileri
+  // Çalışan eğitim görünümü
   const renderEmployeeTraining = () => {
     if (!employeeData) return null;
 
-    const recommendations = employeeData.recommendations || [];
+    // Önerilen kurslar
+    const recommendedCourses = employeeData.recommendations || [];
+    
+    // Atanan kurslar (gerçek uygulamada API'den gelecek)
+    const assignedCourses = recommendedCourses.filter(course => course.priority === 'high');
 
     return (
       <Box p={5}>
         <VStack spacing={8} align="stretch">
           <Box>
-            <Heading size="lg" mb={4}>Eğitim Önerileri</Heading>
+            <Heading size="lg" mb={4}>Training Recommendations</Heading>
             <Text color="gray.600" mb={6}>
-              Performans analizinize dayanarak aşağıdaki eğitimler size özel olarak önerilmektedir.
+              Specially selected training recommendations and assigned courses based on your performance analysis.
             </Text>
           </Box>
 
-          {/* Öncelikli Eğitim Önerileri */}
+          {/* Training Statistics */}
+          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
+            <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+              <StatLabel>Completed Courses</StatLabel>
+              <StatNumber>2</StatNumber>
+              <StatHelpText>Last 30 days</StatHelpText>
+              <Progress value={40} colorScheme="green" size="sm" mt={2} />
+            </Stat>
+            <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+              <StatLabel>Assigned Courses</StatLabel>
+              <StatNumber>{assignedCourses.length}</StatNumber>
+              <StatHelpText>Pending completion</StatHelpText>
+              <Progress value={60} colorScheme="blue" size="sm" mt={2} />
+            </Stat>
+            <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
+              <StatLabel>Total Training Hours</StatLabel>
+              <StatNumber>12.5</StatNumber>
+              <StatHelpText>This month</StatHelpText>
+              <Progress value={70} colorScheme="purple" size="sm" mt={2} />
+            </Stat>
+          </SimpleGrid>
+
+          {/* Assigned Courses */}
           <Box>
-            <Heading size="md" mb={4}>Öncelikli Eğitim Önerileri</Heading>
-            <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
-              {recommendations.map((rec, index) => (
-                <Card key={index} boxShadow="md" bg={cardBg}>
-                  <CardHeader bg={subtleBg} py={3}>
-                    <Flex justifyContent="space-between" alignItems="center">
-                      <Heading size="sm">{rec.suggestion}</Heading>
-                      <Badge colorScheme={rec.priority === 'high' ? 'red' : rec.priority === 'medium' ? 'orange' : 'blue'}>
-                        {rec.priority === 'high' ? 'Yüksek' : rec.priority === 'medium' ? 'Orta' : 'Düşük'} Öncelik
-                      </Badge>
-                    </Flex>
-                  </CardHeader>
-                  <CardBody>
-                    <Text fontSize="sm" color="gray.600" mb={3}>{rec.reason}</Text>
-
-                    <Divider my={3} />
-
-                    <Heading size="xs" mb={3}>Önerilen Kurslar</Heading>
-                    <VStack spacing={3} align="stretch">
-                      {DEMO_COURSES[rec.priority === 'high' ? 'communication' : rec.priority === 'medium' ? 'time_management' : 'collaboration']
-                        .slice(0, 2).map(course => (
-                          <Card key={course.id} variant="outline" size="sm">
-                            <CardBody p={3}>
-                              <Flex justifyContent="space-between">
-                                <VStack align="start" spacing={1}>
-                                  <Text fontWeight="bold" fontSize="sm">{course.title}</Text>
-                                  <HStack spacing={2} fontSize="xs" color="gray.500">
-                                    <Text>{course.duration}</Text>
-                                    <Text>•</Text>
-                                    <Text>{course.modules} modül</Text>
-                                    <Text>•</Text>
-                                    <Text>{course.difficulty}</Text>
-                                  </HStack>
-                                </VStack>
-                                {course.completed ? (
-                                  <Icon as={CheckCircleIcon} color="green.500" boxSize={5} />
-                                ) : (
-                                  <Button 
-                                    size="xs" 
-                                    colorScheme="blue" 
-                                    rightIcon={<ExternalLinkIcon />}
-                                    onClick={() => handleCompleteTraining(course.id)}
-                                  >
-                                    Başla
-                                  </Button>
-                                )}
-                              </Flex>
-                            </CardBody>
-                          </Card>
-                        ))}
-                    </VStack>
-                  </CardBody>
-                </Card>
-              ))}
+            <Heading size="md" mb={4}>Assigned Courses</Heading>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
+              {assignedCourses.length > 0 ? (
+                assignedCourses.map(course => (
+                  <Card key={course.suggestion} bg={cardBg}>
+                    <CardBody>
+                      <VStack align="start" spacing={3}>
+                        <Flex justifyContent="space-between" width="100%">
+                          <Badge colorScheme="red">High Priority</Badge>
+                          <Badge colorScheme="blue">Assigned</Badge>
+                        </Flex>
+                        <Heading size="sm">{course.suggestion}</Heading>
+                        <Text fontSize="sm">{course.reason}</Text>
+                        <HStack>
+                          <Icon as={TimeIcon} />
+                          <Text fontSize="sm">{course.course?.duration || '2 hours'}</Text>
+                          <Icon as={StarIcon} />
+                          <Text fontSize="sm">{course.course?.difficulty || 'Intermediate'}</Text>
+                        </HStack>
+                        <Link href={course.link} isExternal color="blue.500" width="100%">
+                          <Button rightIcon={<ExternalLinkIcon />} colorScheme="blue" size="sm" width="100%">
+                            View on Microsoft Learn
+                          </Button>
+                        </Link>
+                      </VStack>
+                    </CardBody>
+                  </Card>
+                ))
+              ) : (
+                <Box p={5} textAlign="center" width="100%">
+                  <Text>No courses assigned yet.</Text>
+                </Box>
+              )}
             </SimpleGrid>
           </Box>
 
-          {/* Tüm Kurs Kategorileri */}
-          <Box mt={6}>
-            <Heading size="md" mb={4}>Tüm Eğitim Kategorileri</Heading>
-            <Tabs variant="enclosed" colorScheme="blue">
-              <TabList>
-                <Tab>İletişim</Tab>
-                <Tab>Zaman Yönetimi</Tab>
-                <Tab>İşbirliği</Tab>
-                <Tab>Üretkenlik</Tab>
-              </TabList>
-              <TabPanels>
-                <TabPanel>
-                  <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
-                    {DEMO_COURSES.communication.map(course => (
-                      <Card key={course.id} direction="row" overflow="hidden" variant="outline">
-                        <CardBody>
-                          <Flex justifyContent="space-between" h="100%">
-                            <VStack align="start" spacing={2}>
-                              <Heading size="sm">{course.title}</Heading>
-                              <HStack spacing={2} fontSize="sm" color="gray.500">
-                                <Icon as={TimeIcon} />
-                                <Text>{course.duration}</Text>
-                                <Text>•</Text>
-                                <Text>{course.modules} modül</Text>
-                              </HStack>
-                              <Badge colorScheme={course.difficulty === 'Başlangıç' ? 'green' : course.difficulty === 'Orta' ? 'blue' : 'purple'}>
-                                {course.difficulty}
-                              </Badge>
-                              {course.completed && (
-                                <Badge colorScheme="green">Tamamlandı</Badge>
-                              )}
-                            </VStack>
-                            <VStack justify="center">
-                              {course.completed ? (
-                                <Button 
-                                  colorScheme="green" 
-                                  variant="outline" 
-                                  leftIcon={<CheckCircleIcon />} 
-                                  size="sm"
-                                  isDisabled
-                                >
-                                  Tamamlandı
-                                </Button>
-                              ) : (
-                                <Button 
-                                  colorScheme="blue" 
-                                  rightIcon={<ExternalLinkIcon />}
-                                  size="sm"
-                                  onClick={() => handleCompleteTraining(course.id)}
-                                >
-                                  Kursa Git
-                                </Button>
-                              )}
-                            </VStack>
-                          </Flex>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </SimpleGrid>
-                </TabPanel>
-                <TabPanel>
-                  <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
-                    {DEMO_COURSES.time_management.map(course => (
-                      <Card key={course.id} direction="row" overflow="hidden" variant="outline">
-                        <CardBody>
-                          <Flex justifyContent="space-between" h="100%">
-                            <VStack align="start" spacing={2}>
-                              <Heading size="sm">{course.title}</Heading>
-                              <HStack spacing={2} fontSize="sm" color="gray.500">
-                                <Icon as={TimeIcon} />
-                                <Text>{course.duration}</Text>
-                                <Text>•</Text>
-                                <Text>{course.modules} modül</Text>
-                              </HStack>
-                              <Badge colorScheme={course.difficulty === 'Başlangıç' ? 'green' : course.difficulty === 'Orta' ? 'blue' : 'purple'}>
-                                {course.difficulty}
-                              </Badge>
-                              {course.completed && (
-                                <Badge colorScheme="green">Tamamlandı</Badge>
-                              )}
-                            </VStack>
-                            <VStack justify="center">
-                              {course.completed ? (
-                                <Button 
-                                  colorScheme="green" 
-                                  variant="outline" 
-                                  leftIcon={<CheckCircleIcon />} 
-                                  size="sm"
-                                  isDisabled
-                                >
-                                  Tamamlandı
-                                </Button>
-                              ) : (
-                                <Button 
-                                  colorScheme="blue" 
-                                  rightIcon={<ExternalLinkIcon />}
-                                  size="sm"
-                                  onClick={() => handleCompleteTraining(course.id)}
-                                >
-                                  Kursa Git
-                                </Button>
-                              )}
-                            </VStack>
-                          </Flex>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </SimpleGrid>
-                </TabPanel>
-                <TabPanel>
-                  <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
-                    {DEMO_COURSES.collaboration.map(course => (
-                      <Card key={course.id} direction="row" overflow="hidden" variant="outline">
-                        <CardBody>
-                          <Flex justifyContent="space-between" h="100%">
-                            <VStack align="start" spacing={2}>
-                              <Heading size="sm">{course.title}</Heading>
-                              <HStack spacing={2} fontSize="sm" color="gray.500">
-                                <Icon as={TimeIcon} />
-                                <Text>{course.duration}</Text>
-                                <Text>•</Text>
-                                <Text>{course.modules} modül</Text>
-                              </HStack>
-                              <Badge colorScheme={course.difficulty === 'Başlangıç' ? 'green' : course.difficulty === 'Orta' ? 'blue' : 'purple'}>
-                                {course.difficulty}
-                              </Badge>
-                              {course.completed && (
-                                <Badge colorScheme="green">Tamamlandı</Badge>
-                              )}
-                            </VStack>
-                            <VStack justify="center">
-                              {course.completed ? (
-                                <Button 
-                                  colorScheme="green" 
-                                  variant="outline" 
-                                  leftIcon={<CheckCircleIcon />} 
-                                  size="sm"
-                                  isDisabled
-                                >
-                                  Tamamlandı
-                                </Button>
-                              ) : (
-                                <Button 
-                                  colorScheme="blue" 
-                                  rightIcon={<ExternalLinkIcon />}
-                                  size="sm"
-                                  onClick={() => handleCompleteTraining(course.id)}
-                                >
-                                  Kursa Git
-                                </Button>
-                              )}
-                            </VStack>
-                          </Flex>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </SimpleGrid>
-                </TabPanel>
-                <TabPanel>
-                  <SimpleGrid columns={{ base: 1, lg: 2 }} spacing={4}>
-                    {DEMO_COURSES.productivity.map(course => (
-                      <Card key={course.id} direction="row" overflow="hidden" variant="outline">
-                        <CardBody>
-                          <Flex justifyContent="space-between" h="100%">
-                            <VStack align="start" spacing={2}>
-                              <Heading size="sm">{course.title}</Heading>
-                              <HStack spacing={2} fontSize="sm" color="gray.500">
-                                <Icon as={TimeIcon} />
-                                <Text>{course.duration}</Text>
-                                <Text>•</Text>
-                                <Text>{course.modules} modül</Text>
-                              </HStack>
-                              <Badge colorScheme={course.difficulty === 'Başlangıç' ? 'green' : course.difficulty === 'Orta' ? 'blue' : 'purple'}>
-                                {course.difficulty}
-                              </Badge>
-                              {course.completed && (
-                                <Badge colorScheme="green">Tamamlandı</Badge>
-                              )}
-                            </VStack>
-                            <VStack justify="center">
-                              {course.completed ? (
-                                <Button 
-                                  colorScheme="green" 
-                                  variant="outline" 
-                                  leftIcon={<CheckCircleIcon />} 
-                                  size="sm"
-                                  isDisabled
-                                >
-                                  Tamamlandı
-                                </Button>
-                              ) : (
-                                <Button 
-                                  colorScheme="blue" 
-                                  rightIcon={<ExternalLinkIcon />}
-                                  size="sm"
-                                  onClick={() => handleCompleteTraining(course.id)}
-                                >
-                                  Kursa Git
-                                </Button>
-                              )}
-                            </VStack>
-                          </Flex>
-                        </CardBody>
-                      </Card>
-                    ))}
-                  </SimpleGrid>
-                </TabPanel>
-              </TabPanels>
-            </Tabs>
+          {/* Recommended Courses */}
+          <Box>
+            <Heading size="md" mb={4}>Recommended Courses</Heading>
+            <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
+              {recommendedCourses
+                .filter(course => course.priority !== 'high')
+                .map(course => (
+                  <Card key={course.suggestion} bg={cardBg}>
+                    <CardBody>
+                      <VStack align="start" spacing={3}>
+                        <Badge colorScheme={course.priority === 'medium' ? 'orange' : 'green'}>
+                          {course.priority === 'medium' ? 'Medium Priority' : 'Low Priority'}
+                        </Badge>
+                        <Heading size="sm">{course.suggestion}</Heading>
+                        <Text fontSize="sm">{course.reason}</Text>
+                        <HStack>
+                          <Icon as={TimeIcon} />
+                          <Text fontSize="sm">{course.course?.duration || '2 hours'}</Text>
+                          <Icon as={StarIcon} />
+                          <Text fontSize="sm">{course.course?.difficulty || 'Intermediate'}</Text>
+                        </HStack>
+                        <Link href={course.link} isExternal color="blue.500" width="100%">
+                          <Button rightIcon={<ExternalLinkIcon />} colorScheme="blue" size="sm" width="100%">
+                            View on Microsoft Learn
+                          </Button>
+                        </Link>
+                        <Button 
+                          colorScheme="green" 
+                          size="sm" 
+                          width="100%" 
+                          leftIcon={<CheckCircleIcon />}
+                          onClick={() => handleCompleteTraining(course.id)}
+                        >
+                          Mark as Completed
+                        </Button>
+                      </VStack>
+                    </CardBody>
+                  </Card>
+                ))}
+            </SimpleGrid>
           </Box>
 
-          {/* Eğitim İstatistikleri */}
-          <Box mt={8}>
-            <Heading size="md" mb={4}>Eğitim İstatistikleriniz</Heading>
+          {/* Popular Courses */}
+          <Box>
+            <Heading size="md" mb={4}>Popular Microsoft Learn Courses</Heading>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
-              <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
-                <StatLabel>Tamamlanan Kurslar</StatLabel>
-                <StatNumber>3</StatNumber>
-                <StatHelpText>Son 3 ayda</StatHelpText>
-                <Progress value={30} colorScheme="green" size="sm" mt={2} />
-              </Stat>
-              <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
-                <StatLabel>Toplam Eğitim Saati</StatLabel>
-                <StatNumber>8.5</StatNumber>
-                <StatHelpText>Saat</StatHelpText>
-                <Progress value={42.5} colorScheme="blue" size="sm" mt={2} />
-              </Stat>
-              <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
-                <StatLabel>Tamamlanma Oranı</StatLabel>
-                <StatNumber>25%</StatNumber>
-                <StatHelpText>Atanan eğitimler</StatHelpText>
-                <Progress value={25} colorScheme="yellow" size="sm" mt={2} />
-              </Stat>
+              <Card bg={cardBg}>
+                <CardBody>
+                  <VStack align="start" spacing={3}>
+                    <Badge colorScheme="purple">Most Popular</Badge>
+                    <Heading size="sm">Microsoft 365 Fundamentals</Heading>
+                    <Text fontSize="sm">Learn to use Microsoft 365 applications effectively.</Text>
+                    <HStack>
+                      <Icon as={TimeIcon} />
+                      <Text fontSize="sm">3 hours</Text>
+                      <Icon as={StarIcon} />
+                      <Text fontSize="sm">Beginner</Text>
+                    </HStack>
+                    <Link href="https://learn.microsoft.com/en-us/training/paths/m365-productivity-teamwork/" isExternal color="blue.500" width="100%">
+                      <Button rightIcon={<ExternalLinkIcon />} colorScheme="blue" size="sm" width="100%">
+                        View on Microsoft Learn
+                      </Button>
+                    </Link>
+                  </VStack>
+                </CardBody>
+              </Card>
+              
+              <Card bg={cardBg}>
+                <CardBody>
+                  <VStack align="start" spacing={3}>
+                    <Badge colorScheme="teal">New</Badge>
+                    <Heading size="sm">Data Analysis with Power BI</Heading>
+                    <Text fontSize="sm">Improve your data visualization and analysis skills with Power BI.</Text>
+                    <HStack>
+                      <Icon as={TimeIcon} />
+                      <Text fontSize="sm">4 hours</Text>
+                      <Icon as={StarIcon} />
+                      <Text fontSize="sm">Intermediate</Text>
+                    </HStack>
+                    <Link href="https://learn.microsoft.com/en-us/training/paths/create-use-analytics-reports-power-bi/" isExternal color="blue.500" width="100%">
+                      <Button rightIcon={<ExternalLinkIcon />} colorScheme="blue" size="sm" width="100%">
+                        View on Microsoft Learn
+                      </Button>
+                    </Link>
+                  </VStack>
+                </CardBody>
+              </Card>
+              
+              <Card bg={cardBg}>
+                <CardBody>
+                  <VStack align="start" spacing={3}>
+                    <Badge colorScheme="orange">Trending</Badge>
+                    <Heading size="sm">Collaboration with Microsoft Teams</Heading>
+                    <Text fontSize="sm">Learn how to improve team collaboration and communication with Teams.</Text>
+                    <HStack>
+                      <Icon as={TimeIcon} />
+                      <Text fontSize="sm">2.5 hours</Text>
+                      <Icon as={StarIcon} />
+                      <Text fontSize="sm">Beginner</Text>
+                    </HStack>
+                    <Link href="https://learn.microsoft.com/en-us/training/modules/intro-to-microsoft-teams/" isExternal color="blue.500" width="100%">
+                      <Button rightIcon={<ExternalLinkIcon />} colorScheme="blue" size="sm" width="100%">
+                        View on Microsoft Learn
+                      </Button>
+                    </Link>
+                  </VStack>
+                </CardBody>
+              </Card>
             </SimpleGrid>
           </Box>
         </VStack>
@@ -455,12 +399,12 @@ const Training = () => {
 
     // Kategorilere göre tamamlanma oranları
     const completionRates = {
-      'İletişim': 45,
-      'Zaman Yönetimi': 65,
-      'İşbirliği': 30,
-      'Üretkenlik': 55,
-      'Teknik Beceriler': 70,
-      'Liderlik': 25
+      'Communication': 45,
+      'Time Management': 65,
+      'Collaboration': 30,
+      'Productivity': 55,
+      'Technical Skills': 70,
+      'Leadership': 25
     };
 
     // Çalışanların eğitim tamamlama oranları
@@ -476,40 +420,40 @@ const Training = () => {
       <Box p={5}>
         <VStack spacing={8} align="stretch">
           <Box>
-            <Heading size="lg" mb={4}>Eğitim Yönetimi</Heading>
+            <Heading size="lg" mb={4}>Training Management</Heading>
             <Text color="gray.600" mb={6}>
-              Şirketteki tüm eğitim aktivitelerini ve çalışanların tamamlama oranlarını görüntüleyebilirsiniz.
+              You can view all training activities and completion rates of employees in the company.
             </Text>
           </Box>
 
-          {/* Eğitim Tamamlama İstatistikleri */}
+          {/* Training Completion Statistics */}
           <Box>
-            <Heading size="md" mb={4}>Eğitim Tamamlama İstatistikleri</Heading>
+            <Heading size="md" mb={4}>Training Completion Statistics</Heading>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
               <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
-                <StatLabel>Ortalama Tamamlama Oranı</StatLabel>
+                <StatLabel>Average Completion Rate</StatLabel>
                 <StatNumber>54%</StatNumber>
-                <StatHelpText>Tüm Şirket</StatHelpText>
+                <StatHelpText>All Company</StatHelpText>
                 <Progress value={54} colorScheme="blue" size="sm" mt={2} />
               </Stat>
               <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
-                <StatLabel>Toplam Tamamlanan Kurs</StatLabel>
+                <StatLabel>Total Completed Courses</StatLabel>
                 <StatNumber>87</StatNumber>
-                <StatHelpText>Son 6 ayda</StatHelpText>
+                <StatHelpText>Last 6 months</StatHelpText>
                 <Progress value={70} colorScheme="green" size="sm" mt={2} />
               </Stat>
               <Stat p={5} bg={cardBg} borderRadius="lg" boxShadow="sm">
-                <StatLabel>Bekleyen Atanan Kurslar</StatLabel>
+                <StatLabel>Pending Assigned Courses</StatLabel>
                 <StatNumber>34</StatNumber>
-                <StatHelpText>Tamamlanmamış</StatHelpText>
+                <StatHelpText>Incomplete</StatHelpText>
                 <Progress value={40} colorScheme="orange" size="sm" mt={2} />
               </Stat>
             </SimpleGrid>
           </Box>
 
-          {/* Kategori Bazlı Eğitim Tamamlama */}
+          {/* Category-Based Training Completion */}
           <Box>
-            <Heading size="md" mb={4}>Kategori Bazlı Eğitim Tamamlama</Heading>
+            <Heading size="md" mb={4}>Category-Based Training Completion</Heading>
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={5}>
               {Object.entries(completionRates).map(([category, rate]) => (
                 <Card key={category} bg={cardBg}>
@@ -524,7 +468,7 @@ const Training = () => {
                       />
                       <Flex justifyContent="space-between">
                         <Text fontSize="sm" fontWeight="bold">{rate}%</Text>
-                        <Text fontSize="xs" color="gray.500">Tamamlanma Oranı</Text>
+                        <Text fontSize="xs" color="gray.500">Completion Rate</Text>
                       </Flex>
                     </VStack>
                   </CardBody>
@@ -533,9 +477,9 @@ const Training = () => {
             </SimpleGrid>
           </Box>
 
-          {/* Çalışan Eğitim Takibi */}
+          {/* Employee Training Tracking */}
           <Box mt={5}>
-            <Heading size="md" mb={4}>Çalışan Eğitim Takibi</Heading>
+            <Heading size="md" mb={4}>Employee Training Tracking</Heading>
             <Card bg={cardBg}>
               <CardBody>
                 <VStack spacing={5} align="stretch">
@@ -544,7 +488,7 @@ const Training = () => {
                       <Flex justifyContent="space-between" mb={2}>
                         <Text fontWeight="medium">{employee.name}</Text>
                         <HStack spacing={4}>
-                          <Text fontSize="sm">{employee.completed}/{employee.assigned} Kurs</Text>
+                          <Text fontSize="sm">{employee.completed}/{employee.assigned} Course</Text>
                           <Text fontWeight="bold" color={getProgressColor(employee.rate)}>
                             {employee.rate.toFixed(1)}%
                           </Text>
@@ -563,57 +507,112 @@ const Training = () => {
             </Card>
           </Box>
 
-          {/* Eğitim Atama Bölümü */}
+          {/* Training Assignment Section */}
           <Box mt={5}>
-            <Heading size="md" mb={4}>Eğitim Atama</Heading>
+            <Heading size="md" mb={4}>Training Assignment</Heading>
             <Card bg={cardBg}>
               <CardBody>
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
                   <VStack align="stretch" spacing={3}>
-                    <Heading size="sm">Popüler Kurslar</Heading>
+                    <Heading size="sm">Employee-Specific Recommendations</Heading>
                     <Divider />
-                    {Object.values(DEMO_COURSES)
-                      .flat()
-                      .slice(0, 5)
-                      .map(course => (
-                        <Flex key={course.id} justifyContent="space-between" alignItems="center" p={2} borderWidth="1px" borderRadius="md">
-                          <VStack align="start" spacing={0}>
-                            <Text fontWeight="medium" fontSize="sm">{course.title}</Text>
-                            <Text fontSize="xs" color="gray.500">{course.duration} • {course.difficulty}</Text>
-                          </VStack>
-                          <Button 
-                            size="xs" 
-                            colorScheme="blue"
-                            onClick={() => handleAssignTraining(course.id, selectedEmployee)}
-                          >
-                            Ata
-                          </Button>
-                        </Flex>
+                    
+                    <Select 
+                      placeholder="Select Employee" 
+                      value={selectedEmployee}
+                      onChange={(e) => setSelectedEmployee(e.target.value)}
+                      mb={3}
+                    >
+                      {allEmployees.map(emp => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name} - {emp.department}
+                        </option>
                       ))}
+                    </Select>
+                    
+                    {selectedEmployee ? (
+                      employeeRecommendations.length > 0 ? (
+                        employeeRecommendations.map(recommendation => (
+                          <Flex 
+                            key={recommendation.suggestion} 
+                            justifyContent="space-between" 
+                            alignItems="center" 
+                            p={3} 
+                            borderWidth="1px" 
+                            borderRadius="md"
+                            mb={2}
+                          >
+                            <VStack align="start" spacing={1}>
+                              <HStack>
+                                <Text fontWeight="medium" fontSize="sm">{recommendation.suggestion}</Text>
+                                <Badge colorScheme={recommendation.priority === 'high' ? 'red' : recommendation.priority === 'medium' ? 'orange' : 'green'}>
+                                  {recommendation.priority === 'high' ? 'High' : recommendation.priority === 'medium' ? 'Medium' : 'Low'}
+                                </Badge>
+                              </HStack>
+                              <Text fontSize="xs" color="gray.500">{recommendation.reason}</Text>
+                              <Link href={recommendation.link} isExternal fontSize="xs" color="blue.500">
+                                Microsoft Learn <ExternalLinkIcon mx="2px" />
+                              </Link>
+                            </VStack>
+                            <Button 
+                              size="sm" 
+                              colorScheme="blue"
+                              onClick={() => handleAssignTraining(recommendation.course, selectedEmployee)}
+                            >
+                              Assign
+                            </Button>
+                          </Flex>
+                        ))
+                      ) : (
+                        <Box p={4} textAlign="center">
+                          <Text>No training recommendations available for this employee.</Text>
+                        </Box>
+                      )
+                    ) : (
+                      <Box p={4} textAlign="center">
+                        <Text>Select an employee to view recommendations.</Text>
+                      </Box>
+                    )}
                   </VStack>
 
                   <VStack align="stretch" spacing={3}>
-                    <Heading size="sm">Özel Kurs Atamaları</Heading>
+                    <Heading size="sm">Assigned Courses</Heading>
                     <Divider />
-                    <Text fontSize="sm" color="gray.600">
-                      Belirli bir çalışana özel kurs atamak için çalışanı seçin ve kurslardan birini atayın.
-                    </Text>
-                    <Box>
-                      <Text fontWeight="medium" mb={2}>Çalışan Seçin</Text>
-                      <SimpleGrid columns={2} spacing={2}>
-                        {allEmployees.map(emp => (
-                          <Button 
-                            key={emp.id} 
-                            size="sm" 
-                            colorScheme={selectedEmployee === emp.id ? "blue" : "gray"}
-                            variant={selectedEmployee === emp.id ? "solid" : "outline"}
-                            onClick={() => setSelectedEmployee(emp.id)}
+                    
+                    {selectedEmployee ? (
+                      assignedCourses[selectedEmployee] && assignedCourses[selectedEmployee].length > 0 ? (
+                        assignedCourses[selectedEmployee].map(course => (
+                          <Flex 
+                            key={course.id} 
+                            justifyContent="space-between" 
+                            alignItems="center" 
+                            p={3} 
+                            borderWidth="1px" 
+                            borderRadius="md"
+                            mb={2}
                           >
-                            {emp.name}
-                          </Button>
-                        ))}
-                      </SimpleGrid>
-                    </Box>
+                            <VStack align="start" spacing={1}>
+                              <Text fontWeight="medium" fontSize="sm">{course.title}</Text>
+                              <Text fontSize="xs" color="gray.500">
+                                {course.duration} • {course.difficulty}
+                              </Text>
+                              <Link href={course.url} isExternal fontSize="xs" color="blue.500">
+                                Microsoft Learn <ExternalLinkIcon mx="2px" />
+                              </Link>
+                            </VStack>
+                            <Badge colorScheme="green">Assigned</Badge>
+                          </Flex>
+                        ))
+                      ) : (
+                        <Box p={4} textAlign="center">
+                          <Text>No course assigned to this employee yet.</Text>
+                        </Box>
+                      )
+                    ) : (
+                      <Box p={4} textAlign="center">
+                        <Text>Select an employee to view assigned courses.</Text>
+                      </Box>
+                    )}
                   </VStack>
                 </SimpleGrid>
               </CardBody>
@@ -637,7 +636,7 @@ const Training = () => {
       <Alert status="error" variant="subtle" flexDirection="column" alignItems="center" justifyContent="center" textAlign="center" height="200px">
         <AlertIcon boxSize="40px" mr={0} />
         <Text mt={4} mb={1} fontSize="lg">
-          Veri Yükleme Hatası
+          Data Loading Error
         </Text>
         <Text>{error}</Text>
       </Alert>

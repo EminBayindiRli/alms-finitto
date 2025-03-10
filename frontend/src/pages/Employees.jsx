@@ -215,11 +215,11 @@ const Employees = () => {
           setEmployees(allEmployeesData);
         } else {
           // Admin değilse bu sayfaya erişim yok
-          setError('Bu sayfaya erişim yetkiniz bulunmamaktadır.');
+          setError('You do not have permission to access this page.');
         }
       } catch (err) {
-        console.error('Veri yükleme hatası:', err);
-        setError('Veri yüklenirken bir sorun oluştu.');
+        console.error('Data loading error:', err);
+        setError('There was a problem loading the data.');
       } finally {
         setLoading(false);
       }
@@ -377,14 +377,14 @@ const Employees = () => {
   }
 
   return (
-    <Box p={5}>
+    <Box width="100%" maxWidth="100%" p={5}>
       <VStack spacing={8} align="stretch">
         {/* Başlık ve Arama */}
         <Flex justifyContent="space-between" alignItems="center" wrap="wrap" gap={4}>
           <Box>
-            <Heading size="lg">Çalışan Yönetimi</Heading>
+            <Heading size="lg">Employee Management</Heading>
             <Text color="gray.600">
-              Tüm çalışanların detaylı analiz ve performans verileri
+              Detailed analysis and performance data of all employees
             </Text>
           </Box>
           <Box>
@@ -393,7 +393,7 @@ const Employees = () => {
                 <SearchIcon color="gray.300" />
               </InputLeftElement>
               <Input 
-                placeholder="Çalışan ara..." 
+                placeholder="Search employee..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -404,34 +404,34 @@ const Employees = () => {
         {/* Özet İstatistikler */}
         <SimpleGrid columns={{ base: 1, md: 4 }} spacing={4}>
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Toplam Çalışan</StatLabel>
+            <StatLabel>Total Employees</StatLabel>
             <StatNumber>{employees.length}</StatNumber>
-            <StatHelpText>Aktif: {employees.filter(e => e.status === 'active').length}</StatHelpText>
+            <StatHelpText>Active: {employees.filter(e => e.status === 'active').length}</StatHelpText>
           </Stat>
 
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Ortalama Performans</StatLabel>
+            <StatLabel>Average Performance</StatLabel>
             <StatNumber>
               {Math.round(employees.reduce((sum, emp) => sum + emp.performanceScore, 0) / employees.length)}%
             </StatNumber>
-            <StatHelpText>Tüm çalışanlar</StatHelpText>
+            <StatHelpText>All employees</StatHelpText>
           </Stat>
 
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Eğitim Tamamlama</StatLabel>
+            <StatLabel>Training Completion</StatLabel>
             <StatNumber>
               {Math.round(employees.reduce((sum, emp) => sum + emp.completedTrainings, 0) / 
                 employees.reduce((sum, emp) => sum + emp.assignedTrainings, 0) * 100)}%
             </StatNumber>
-            <StatHelpText>Ortalama</StatHelpText>
+            <StatHelpText>Average</StatHelpText>
           </Stat>
 
           <Stat bg={cardBg} p={4} borderRadius="lg" boxShadow="sm">
-            <StatLabel>Yüksek Performans</StatLabel>
+            <StatLabel>High Performance</StatLabel>
             <StatNumber>
               {employees.filter(emp => emp.performanceScore >= 85).length}
             </StatNumber>
-            <StatHelpText>Çalışan sayısı</StatHelpText>
+            <StatHelpText>Number of employees</StatHelpText>
           </Stat>
         </SimpleGrid>
 
@@ -440,7 +440,7 @@ const Employees = () => {
           {/* Segment Dağılımı */}
           <Card>
             <CardHeader>
-              <Heading size="md">Çalışan Segment Dağılımı</Heading>
+              <Heading size="md">Employee Segment Distribution</Heading>
             </CardHeader>
             <CardBody>
               <VStack spacing={4} align="stretch">
@@ -448,7 +448,7 @@ const Employees = () => {
                   <Flex key={segment} justify="space-between" align="center">
                     <HStack>
                       <Badge colorScheme={getSegmentColor(segment)}>{segment}</Badge>
-                      <Text>{count} çalışan</Text>
+                      <Text>{count} employees</Text>
                     </HStack>
                     <Progress 
                       value={(count / employees.length) * 100} 
@@ -465,7 +465,7 @@ const Employees = () => {
           {/* Departman Dağılımı */}
           <Card>
             <CardHeader>
-              <Heading size="md">Departman Dağılımı</Heading>
+              <Heading size="md">Department Distribution</Heading>
             </CardHeader>
             <CardBody>
               <VStack spacing={4} align="stretch">
@@ -473,7 +473,7 @@ const Employees = () => {
                   <Flex key={dept} justify="space-between" align="center">
                     <Text>{dept}</Text>
                     <HStack spacing={4}>
-                      <Text>{count} çalışan</Text>
+                      <Text>{count} employees</Text>
                       <Progress 
                         value={(count / employees.length) * 100} 
                         colorScheme="blue" 
@@ -495,7 +495,7 @@ const Employees = () => {
               <Tr>
                 <Th cursor="pointer" onClick={() => requestSort('name')}>
                   <Flex align="center">
-                    Çalışan 
+                    Employee
                     {sortConfig.key === 'name' && (
                       sortConfig.direction === 'asc' 
                         ? <ChevronUpIcon ml={1} /> 
@@ -505,7 +505,7 @@ const Employees = () => {
                 </Th>
                 <Th cursor="pointer" onClick={() => requestSort('department')}>
                   <Flex align="center">
-                    Departman
+                    Department
                     {sortConfig.key === 'department' && (
                       sortConfig.direction === 'asc' 
                         ? <ChevronUpIcon ml={1} /> 
@@ -515,7 +515,7 @@ const Employees = () => {
                 </Th>
                 <Th cursor="pointer" onClick={() => requestSort('team')}>
                   <Flex align="center">
-                    Takım
+                    Team
                     {sortConfig.key === 'team' && (
                       sortConfig.direction === 'asc' 
                         ? <ChevronUpIcon ml={1} /> 
@@ -525,7 +525,7 @@ const Employees = () => {
                 </Th>
                 <Th cursor="pointer" onClick={() => requestSort('performanceScore')}>
                   <Flex align="center">
-                    Performans
+                    Performance
                     {sortConfig.key === 'performanceScore' && (
                       sortConfig.direction === 'asc' 
                         ? <ChevronUpIcon ml={1} /> 
@@ -535,7 +535,7 @@ const Employees = () => {
                 </Th>
                 <Th cursor="pointer" onClick={() => requestSort('lastActivityDate')}>
                   <Flex align="center">
-                    Son Aktivite
+                    Last Activity
                     {sortConfig.key === 'lastActivityDate' && (
                       sortConfig.direction === 'asc' 
                         ? <ChevronUpIcon ml={1} /> 
@@ -553,7 +553,7 @@ const Employees = () => {
                     )}
                   </Flex>
                 </Th>
-                <Th>İşlemler</Th>
+                <Th>Actions</Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -596,14 +596,14 @@ const Employees = () => {
                         colorScheme="blue" 
                         onClick={() => viewEmployeeDetails(employee)}
                       >
-                        Detaylar
+                        Details
                       </Button>
                       <Button 
                         size="sm" 
                         leftIcon={<DownloadIcon />} 
                         onClick={() => downloadEmployeeReport(employee.id)}
                       >
-                        Rapor
+                        Report
                       </Button>
                     </HStack>
                   </Td>
@@ -641,32 +641,32 @@ const Employees = () => {
                   ) : (
                     <Tabs isFitted variant="enclosed">
                       <TabList mb="1em">
-                        <Tab>Genel Bilgiler</Tab>
-                        <Tab>Performans</Tab>
-                        <Tab>Eğitimler</Tab>
+                        <Tab>General Information</Tab>
+                        <Tab>Performance</Tab>
+                        <Tab>Trainings</Tab>
                       </TabList>
                       <TabPanels>
                         {/* Genel Bilgiler */}
                         <TabPanel>
                           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4} mb={6}>
                             <Box>
-                              <Text color="gray.500" fontSize="sm">Departman</Text>
+                              <Text color="gray.500" fontSize="sm">Department</Text>
                               <Text>{selectedEmployee.department}</Text>
                             </Box>
                             <Box>
-                              <Text color="gray.500" fontSize="sm">Takım</Text>
+                              <Text color="gray.500" fontSize="sm">Team</Text>
                               <Text>{selectedEmployee.team}</Text>
                             </Box>
                             <Box>
-                              <Text color="gray.500" fontSize="sm">Pozisyon</Text>
+                              <Text color="gray.500" fontSize="sm">Position</Text>
                               <Text>{selectedEmployee.position}</Text>
                             </Box>
                             <Box>
-                              <Text color="gray.500" fontSize="sm">İşe Başlama</Text>
+                              <Text color="gray.500" fontSize="sm">Hire Date</Text>
                               <Text>{selectedEmployee.hireDate}</Text>
                             </Box>
                             <Box>
-                              <Text color="gray.500" fontSize="sm">Yönetici</Text>
+                              <Text color="gray.500" fontSize="sm">Manager</Text>
                               <Text>{selectedEmployee.manager}</Text>
                             </Box>
                             <Box>
@@ -681,7 +681,7 @@ const Employees = () => {
 
                           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                             <Box>
-                              <Text fontWeight="medium" mb={2}>İletişim Bilgileri</Text>
+                              <Text fontWeight="medium" mb={2}>Contact Information</Text>
                               <HStack>
                                 <EmailIcon color="blue.500" />
                                 <Text>{selectedEmployee.email}</Text>
@@ -692,7 +692,7 @@ const Employees = () => {
                               </HStack>
                             </Box>
                             <Box>
-                              <Text fontWeight="medium" mb={2}>Güçlü Yönler</Text>
+                              <Text fontWeight="medium" mb={2}>Strengths</Text>
                               <HStack flexWrap="wrap" gap={2}>
                                 {selectedEmployee.strengths.map(strength => (
                                   <Tag key={strength} colorScheme="green" size="sm">
@@ -701,7 +701,7 @@ const Employees = () => {
                                 ))}
                               </HStack>
 
-                              <Text fontWeight="medium" mt={4} mb={2}>Gelişim Alanları</Text>
+                              <Text fontWeight="medium" mt={4} mb={2}>Improvement Areas</Text>
                               <HStack flexWrap="wrap" gap={2}>
                                 {selectedEmployee.improvementAreas.map(area => (
                                   <Tag key={area} colorScheme="orange" size="sm">
@@ -717,23 +717,23 @@ const Employees = () => {
                         <TabPanel>
                           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4} mb={6}>
                             {renderMetricCard(
-                              "Performans Skoru", 
+                              "Performance Score", 
                               `${selectedEmployee.performanceScore}%`, 
-                              "Son 30 gün", 
+                              "Last 30 days", 
                               StarIcon, 
                               getPerformanceColor(selectedEmployee.performanceScore)
                             )}
                             {renderMetricCard(
-                              "Eğitim Tamamlama", 
+                              "Training Completion", 
                               `${Math.round((selectedEmployee.completedTrainings / selectedEmployee.assignedTrainings) * 100)}%`, 
-                              `${selectedEmployee.completedTrainings}/${selectedEmployee.assignedTrainings} kurs`, 
+                              `${selectedEmployee.completedTrainings}/${selectedEmployee.assignedTrainings} course`, 
                               InfoIcon, 
                               "blue"
                             )}
                             {renderMetricCard(
-                              "Son Aktivite", 
+                              "Last Activity", 
                               selectedEmployee.lastActivityDate, 
-                              "Gün içi aktivite", 
+                              "Daily activity", 
                               TimeIcon, 
                               "purple"
                             )}
@@ -741,7 +741,7 @@ const Employees = () => {
 
                           {employeeAnalysis && (
                             <>
-                              <Heading size="sm" mb={4}>Performans Metrikleri</Heading>
+                              <Heading size="sm" mb={4}>Performance Metrics</Heading>
                               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                                 {Object.entries(employeeAnalysis.current_metrics).map(([key, value]) => (
                                   <Box key={key} p={3} borderWidth="1px" borderRadius="md">
@@ -771,7 +771,7 @@ const Employees = () => {
                           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
                             <Card>
                               <CardHeader>
-                                <Heading size="sm">Tamamlanan Eğitimler</Heading>
+                                <Heading size="sm">Completed Trainings</Heading>
                               </CardHeader>
                               <CardBody>
                                 <VStack align="stretch" spacing={3}>
@@ -787,21 +787,21 @@ const Employees = () => {
                                       <VStack align="start" spacing={0}>
                                         <Text fontSize="sm" fontWeight="medium">
                                           {[
-                                            "Zaman Yönetimi Temelleri",
-                                            "E-posta Yönetimi ve İletişimi",
-                                            "Kişisel Üretkenlik ve Odaklanma",
-                                            "Örnek Kurs " + (index + 4)
+                                            "Time Management Fundamentals",
+                                            "Email Management and Communication",
+                                            "Personal Productivity and Focus",
+                                            "Sample Course " + (index + 4)
                                           ][index % 4]}
                                         </Text>
                                         <Text fontSize="xs" color="gray.500">
-                                          {["2 hafta önce", "1 ay önce", "3 ay önce", "6 ay önce"][index % 4]}
+                                          {["2 weeks ago", "1 month ago", "3 months ago", "6 months ago"][index % 4]}
                                         </Text>
                                       </VStack>
-                                      <Badge colorScheme="green">Tamamlandı</Badge>
+                                      <Badge colorScheme="green">Completed</Badge>
                                     </Flex>
                                   ))}
                                   {selectedEmployee.completedTrainings === 0 && (
-                                    <Text color="gray.500">Tamamlanan eğitim bulunmamaktadır.</Text>
+                                    <Text color="gray.500">No training completed.</Text>
                                   )}
                                 </VStack>
                               </CardBody>
@@ -809,7 +809,7 @@ const Employees = () => {
 
                             <Card>
                               <CardHeader>
-                                <Heading size="sm">Devam Eden Eğitimler</Heading>
+                                <Heading size="sm">Ongoing Trainings</Heading>
                               </CardHeader>
                               <CardBody>
                                 <VStack align="stretch" spacing={3}>
@@ -825,21 +825,21 @@ const Employees = () => {
                                       <VStack align="start" spacing={0}>
                                         <Text fontSize="sm" fontWeight="medium">
                                           {[
-                                            "Etkili İletişim Becerileri",
-                                            "Takım İşbirliği Temel İlkeleri",
-                                            "Microsoft 365 ile Üretkenlik",
-                                            "Örnek Kurs " + (index + 1)
+                                            "Effective Communication Skills",
+                                            "Team Collaboration Basics",
+                                            "Microsoft 365 Productivity",
+                                            "Sample Course " + (index + 1)
                                           ][index % 4]}
                                         </Text>
                                         <Text fontSize="xs" color="gray.500">
-                                          {["40% tamamlandı", "25% tamamlandı", "10% tamamlandı", "5% tamamlandı"][index % 4]}
+                                          {["40% completed", "25% completed", "10% completed", "5% completed"][index % 4]}
                                         </Text>
                                       </VStack>
-                                      <Badge colorScheme="orange">Devam Ediyor</Badge>
+                                      <Badge colorScheme="orange">Ongoing</Badge>
                                     </Flex>
                                   ))}
                                   {(selectedEmployee.assignedTrainings - selectedEmployee.completedTrainings) === 0 && (
-                                    <Text color="gray.500">Devam eden eğitim bulunmamaktadır.</Text>
+                                    <Text color="gray.500">No ongoing training.</Text>
                                   )}
                                 </VStack>
                               </CardBody>
@@ -852,9 +852,9 @@ const Employees = () => {
                 </ModalBody>
                 <ModalFooter>
                   <Button colorScheme="blue" mr={3} onClick={() => downloadEmployeeReport(selectedEmployee.id)}>
-                    Rapor İndir
+                    Download Report
                   </Button>
-                  <Button variant="ghost" onClick={onClose}>Kapat</Button>
+                  <Button variant="ghost" onClick={onClose}>Close</Button>
                 </ModalFooter>
               </>
             )}

@@ -55,7 +55,7 @@ const Setup = () => {
       if (adminResult.success || employeeResult.success) {
         setSetupComplete(true);
         
-        // Oluşturulan kullanıcıları listele
+        // List created users
         const newUsers = [];
         if (adminResult.success) {
           newUsers.push({ email: adminEmail, password: adminPassword, role: 'admin' });
@@ -66,26 +66,26 @@ const Setup = () => {
         setUsers(newUsers);
         
         toast({
-          title: 'Kurulum Tamamlandı',
-          description: 'Test kullanıcıları başarıyla oluşturuldu!',
+          title: 'Setup Complete',
+          description: 'Test users have been successfully created!',
           status: 'success',
           duration: 5000,
           isClosable: true,
         });
       } else {
         toast({
-          title: 'Kurulum Hatası',
-          description: 'Kullanıcılar oluşturulurken bir hata meydana geldi.',
+          title: 'Setup Error',
+          description: 'An error occurred while creating users.',
           status: 'error',
           duration: 5000,
           isClosable: true,
         });
       }
     } catch (error) {
-      console.error('Kurulum hatası:', error);
+      console.error('Setup error:', error);
       toast({
-        title: 'Kurulum Hatası',
-        description: `Hata: ${error.message}`,
+        title: 'Setup Error',
+        description: `Error: ${error.message}`,
         status: 'error',
         duration: 5000,
         isClosable: true,
@@ -97,18 +97,18 @@ const Setup = () => {
 
   return (
     <Box maxW="800px" mx="auto" p={8}>
-      <Heading mb={6}>ALMS Sistem Kurulumu</Heading>
+      <Heading mb={6}>ALMS System Setup</Heading>
       <Text mb={4}>
-        Bu sayfa, test için admin ve çalışan kullanıcıları oluşturmanızı sağlar. Bu işlem yalnızca bir kere yapılmalıdır.
+        This page allows you to create test admin and employee users. This should only be done once.
       </Text>
 
       {setupComplete ? (
         <Box mt={6}>
           <Heading size="md" mb={4} color="green.500">
-            Kurulum Tamamlandı!
+            Setup Complete!
           </Heading>
           <Text mb={4}>
-            Aşağıdaki kullanıcı bilgileriyle giriş yapabilirsiniz:
+            You can log in with the following user credentials:
           </Text>
 
           <SimpleGrid columns={{ base: 1, md: 2 }} spacing={5}>
@@ -116,31 +116,31 @@ const Setup = () => {
               <Card key={index} variant="outline">
                 <CardBody>
                   <Badge colorScheme={user.role === 'admin' ? 'purple' : 'blue'} mb={2}>
-                    {user.role === 'admin' ? 'Admin' : 'Çalışan'}
+                    {user.role === 'admin' ? 'Admin' : 'Employee'}
                   </Badge>
-                  <Text><strong>E-posta:</strong> {user.email}</Text>
-                  <Text><strong>Şifre:</strong> {user.password}</Text>
+                  <Text><strong>Email:</strong> {user.email}</Text>
+                  <Text><strong>Password:</strong> {user.password}</Text>
                 </CardBody>
               </Card>
             ))}
           </SimpleGrid>
 
           <Button mt={6} colorScheme="blue" onClick={() => window.location.href = '/login'}>
-            Giriş Sayfasına Git
+            Go to Login Page
           </Button>
         </Box>
       ) : (
         <VStack spacing={4} align="stretch">
           <Box p={5} borderWidth="1px" borderRadius="lg">
-            <Heading size="sm" mb={3}>Admin Kullanıcısı</Heading>
+            <Heading size="sm" mb={3}>Admin User</Heading>
             <VStack spacing={3}>
               <Input 
-                placeholder="Admin E-posta" 
+                placeholder="Admin Email" 
                 value={adminEmail} 
                 onChange={(e) => setAdminEmail(e.target.value)} 
               />
               <Input 
-                placeholder="Admin Şifre" 
+                placeholder="Admin Password" 
                 value={adminPassword} 
                 onChange={(e) => setAdminPassword(e.target.value)}
                 type="password"
@@ -149,15 +149,15 @@ const Setup = () => {
           </Box>
 
           <Box p={5} borderWidth="1px" borderRadius="lg">
-            <Heading size="sm" mb={3}>Çalışan Kullanıcısı</Heading>
+            <Heading size="sm" mb={3}>Employee User</Heading>
             <VStack spacing={3}>
               <Input 
-                placeholder="Çalışan E-posta" 
+                placeholder="Employee Email" 
                 value={employeeEmail} 
                 onChange={(e) => setEmployeeEmail(e.target.value)} 
               />
               <Input 
-                placeholder="Çalışan Şifre" 
+                placeholder="Employee Password" 
                 value={employeePassword} 
                 onChange={(e) => setEmployeePassword(e.target.value)}
                 type="password"
@@ -172,7 +172,7 @@ const Setup = () => {
               isLoading={loading}
               width="full"
             >
-              Kullanıcıları Oluştur
+              Create Users
             </Button>
           </Box>
         </VStack>
@@ -182,13 +182,13 @@ const Setup = () => {
 
       <Box>
         <Heading size="md" mb={4}>
-          Teknik Bilgiler
+          Technical Information
         </Heading>
         <Text mb={2}>
-          Supabase'de yapılması gerekenler:
+          What needs to be done in Supabase:
         </Text>
         <VStack align="start" spacing={2} mb={4}>
-          <Text>1. Supabase'in SQL Editörü'nde aşağıdaki kodu çalıştırın:</Text>
+          <Text>1. Run the following code in Supabase's SQL Editor:</Text>
           <Code p={4} borderRadius="md" fontSize="sm" whiteSpace="pre" display="block" mb={4}>
 {`CREATE TABLE IF NOT EXISTS public.profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -213,7 +213,7 @@ CREATE POLICY "Kullanıcılar kendi profillerini düzenleyebilir"
         </VStack>
 
         <Text fontSize="sm" color="gray.600">
-          Not: Kullanıcı oluşturabilmek için Supabase projenizde Authentication &gt; Settings &gt; Email Auth bölümünden "Confirm email" seçeneğini devre dışı bırakmanız gerekebilir.
+          Note: You may need to disable the "Confirm email" option in the Authentication &gt; Settings &gt; Email Auth section of your Supabase project to be able to create users.
         </Text>
       </Box>
     </Box>

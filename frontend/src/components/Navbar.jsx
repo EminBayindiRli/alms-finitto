@@ -24,6 +24,7 @@ import {
 } from '@chakra-ui/react';
 import { HamburgerIcon, CloseIcon, ChevronDownIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { useAuth } from '../context/AuthContext';
+import { FiBarChart2, FiBookOpen, FiUsers, FiFileText, FiPieChart, FiUser, FiSettings, FiLogOut } from 'react-icons/fi';
 
 const Navbar = () => {
   const { isOpen, onToggle } = useDisclosure();
@@ -90,6 +91,7 @@ const Navbar = () => {
             justify={'flex-end'}
             direction={'row'}
             spacing={6}
+            ml="auto"
           >
             <Menu>
               <MenuButton
@@ -104,17 +106,18 @@ const Navbar = () => {
                     size={'sm'}
                     src={user.user_metadata?.avatar_url || 'https://bit.ly/broken-link'}
                     name={user.user_metadata?.full_name || user.email}
-                    mr={2}
                   />
-                  <Text display={{ base: 'none', md: 'block' }}>{user.email}</Text>
                 </Flex>
               </MenuButton>
               <MenuList>
                 <MenuItem as={RouterLink} to="/profile">
-                  Profil
+                  Profile
+                </MenuItem>
+                <MenuItem as={RouterLink} to="/settings">
+                  Settings
                 </MenuItem>
                 <MenuDivider />
-                <MenuItem onClick={handleSignOut}>Çıkış Yap</MenuItem>
+                <MenuItem onClick={handleSignOut}>Logout</MenuItem>
               </MenuList>
             </Menu>
           </Stack>
@@ -150,47 +153,25 @@ const DesktopNav = ({ isAdmin }) => {
   const linkHoverColor = useColorModeValue('gray.800', 'white');
   const popoverContentBgColor = useColorModeValue('white', 'gray.800');
 
-  const NAV_ITEMS = [
-    {
-      label: 'Dashboard',
-      href: '/dashboard',
-    },
-    {
-      label: 'Performans',
-      href: '/performance',
-    },
-    {
-      label: 'Eğitim Önerileri',
-      href: '/training',
-    },
-    ...(isAdmin
-      ? [
-          {
-            label: 'Çalışan Yönetimi',
-            href: '/employees',
-          },
-          {
-            label: 'Raporlar',
-            href: '/reports',
-          },
-          {
-            label: 'Analiz',
-            href: '/analysis',
-          },
-        ]
-      : []),
+  const MENU_ITEMS = [
+    { name: 'Dashboard', path: '/dashboard', icon: FiBarChart2 },
+    { name: 'Performance', path: '/performance', icon: FiBarChart2 },
+    { name: 'Training Recommendations', path: '/training', icon: FiBookOpen },
+    { name: 'Employee Management', path: '/employees', icon: FiUsers },
+    { name: 'Reports', path: '/reports', icon: FiFileText },
+    { name: 'Analysis', path: '/analysis', icon: FiPieChart },
   ];
 
   return (
     <Stack direction={'row'} spacing={4}>
-      {NAV_ITEMS.map((navItem) => (
-        <Box key={navItem.label}>
+      {MENU_ITEMS.map((navItem) => (
+        <Box key={navItem.name}>
           <Popover trigger={'hover'} placement={'bottom-start'}>
             <PopoverTrigger>
               <Link
                 p={2}
                 as={RouterLink}
-                to={navItem.href ?? '#'}
+                to={navItem.path ?? '#'}
                 fontSize={'sm'}
                 fontWeight={500}
                 color={linkColor}
@@ -199,7 +180,7 @@ const DesktopNav = ({ isAdmin }) => {
                   color: linkHoverColor,
                 }}
               >
-                {navItem.label}
+                {navItem.name}
               </Link>
             </PopoverTrigger>
 
@@ -265,35 +246,13 @@ const DesktopSubNav = ({ label, href, subLabel }) => {
 };
 
 const MobileNav = ({ isAdmin }) => {
-  const NAV_ITEMS = [
-    {
-      label: 'Dashboard',
-      href: '/dashboard',
-    },
-    {
-      label: 'Performans',
-      href: '/performance',
-    },
-    {
-      label: 'Eğitim Önerileri',
-      href: '/training',
-    },
-    ...(isAdmin
-      ? [
-          {
-            label: 'Çalışan Yönetimi',
-            href: '/employees',
-          },
-          {
-            label: 'Raporlar',
-            href: '/reports',
-          },
-          {
-            label: 'Analiz',
-            href: '/analysis',
-          },
-        ]
-      : []),
+  const MENU_ITEMS = [
+    { name: 'Dashboard', path: '/dashboard', icon: FiBarChart2 },
+    { name: 'Performance', path: '/performance', icon: FiBarChart2 },
+    { name: 'Training Recommendations', path: '/training', icon: FiBookOpen },
+    { name: 'Employee Management', path: '/employees', icon: FiUsers },
+    { name: 'Reports', path: '/reports', icon: FiFileText },
+    { name: 'Analysis', path: '/analysis', icon: FiPieChart },
   ];
 
   return (
@@ -302,8 +261,8 @@ const MobileNav = ({ isAdmin }) => {
       p={4}
       display={{ md: 'none' }}
     >
-      {NAV_ITEMS.map((navItem) => (
-        <MobileNavItem key={navItem.label} {...navItem} />
+      {MENU_ITEMS.map((navItem) => (
+        <MobileNavItem key={navItem.name} {...navItem} />
       ))}
     </Stack>
   );

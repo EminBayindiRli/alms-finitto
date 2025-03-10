@@ -13,6 +13,10 @@ import Training from './pages/Training';
 import Employees from './pages/Employees';
 import Reports from './pages/Reports';
 import Analysis from './pages/Analysis';
+import PageContainer from './components/PageContainer';
+import Profile from './pages/Profile';
+import Settings from './pages/Settings';
+import LandingPage from './pages/LandingPage';
 
 // Korumalı rota bileşeni
 const ProtectedRoute = ({ children }) => {
@@ -24,7 +28,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
   
-  return children;
+  return <PageContainer>{children}</PageContainer>;
 };
 
 // Ana uygulama bileşeni
@@ -48,6 +52,7 @@ const AppContent = () => {
     <>
       {user && <Navbar />}
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/setup" element={<Setup />} />
         <Route
@@ -98,8 +103,23 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
-        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to={user ? "/dashboard" : "/"} replace />} />
       </Routes>
     </>
   );
